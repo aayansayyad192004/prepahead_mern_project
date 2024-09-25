@@ -166,7 +166,7 @@ export default function Profile() {
           className='bg-slate-100 rounded-lg p-3'
           onChange={handleChange}
         />
-        <button className='bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80'>
+        <button className='dark:bg-blue-500 shadow-md text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80'>
           {loading ? 'Loading...' : 'Update'}
         </button>
       </form>
