@@ -119,11 +119,7 @@ const Dashboard = () => {
             <img src={`https://randomuser.me/api/portraits/men/${mentor + 60}.jpg`} alt={`Mentor ${mentor}`} className="w-24 h-24 rounded-full mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2 text-center">John Doe {mentor}</h3>
             <p className="text-gray-600 mb-4 text-center">Senior Software Engineer at Tech Giant</p>
-<<<<<<< HEAD
             <button className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">Book Session ( ₹999/hr)</button>
-=======
-            <button className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">Book Session (₹999/hr)</button>
->>>>>>> 20ae8750a92e54474e204bcc317c0ca55dad74dd
           </div>
         ))}
       </div>
