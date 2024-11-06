@@ -15,4 +15,9 @@ export default defineConfig({
   build: {
     outDir: 'dist', // Specify the output directory explicitly
   },
+  define: {
+    'process.env': process.env  // This allows access to process.env
+  }
 });
+// vite.config.js
+

@@ -9,11 +9,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import OAuth from '../components/OAuth';
 
 export default function SignIn() {
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    role: '', // Added role field
+  });
+
   const { loading, error } = useSelector((state) => state.user);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
@@ -40,16 +46,33 @@ export default function SignIn() {
       dispatch(signInFailure(error));
     }
   };
+
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl text-center font-semibold my-7'>Sign In</h1>
       <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
+        
+        {/* Login As Dropdown */}
+        <select
+          id='role'
+          value={formData.role}
+          onChange={handleChange}
+          className='bg-slate-100 p-3 rounded-lg'
+          required // Ensure user selects a role
+        >
+          <option value=''>Login As</option>
+          <option value='student'>Student</option>
+          <option value='recruiter'>Recruiter</option>
+          <option value='mentor'>Mentor</option>
+        </select>
+
         <input
           type='email'
           placeholder='Email'
           id='email'
           className='bg-slate-100 p-3 rounded-lg'
           onChange={handleChange}
+          required
         />
         <input
           type='password'
@@ -57,6 +80,7 @@ export default function SignIn() {
           id='password'
           className='bg-slate-100 p-3 rounded-lg'
           onChange={handleChange}
+          required
         />
         <button
           disabled={loading}
@@ -64,10 +88,12 @@ export default function SignIn() {
         >
           {loading ? 'Loading...' : 'Sign In'}
         </button>
+        
         <OAuth />
+
       </form>
       <div className='flex gap-2 mt-5'>
-        <p>Dont Have an account?</p>
+        <p>Don't have an account?</p>
         <Link to='/sign-up'>
           <span className='text-blue-500'>Sign up</span>
         </Link>

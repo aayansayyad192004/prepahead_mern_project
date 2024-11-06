@@ -3,10 +3,20 @@ import { Link, useNavigate } from 'react-router-dom';
 import OAuth from '../components/OAuth';
 
 export default function SignUp() {
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    name: '',
+    phone: '',
+    address: '',
+    role: ''
+  });
+  
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
@@ -16,16 +26,20 @@ export default function SignUp() {
     try {
       setLoading(true);
       setError(false);
-      const res = await fetch('/api/auth/signup', {
+      console.log('Form Data:', formData); // Log the form data
+      
+      const res = await fetch('/api/auth/signup', { // Use full URL for local testing
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
       });
+      
       const data = await res.json();
-      console.log(data);
       setLoading(false);
+      console.log('Response Data:', data); // Log the response data
+
       if (data.success === false) {
         setError(true);
         return;
@@ -33,13 +47,26 @@ export default function SignUp() {
       navigate('/sign-in');
     } catch (error) {
       setLoading(false);
+      console.error('Signup error:', error); // Log the error for debugging
       setError(true);
     }
   };
+
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl text-center font-semibold my-7'>Sign Up</h1>
       <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
+        
+        {/* Name Input */}
+        <input
+          type='text'
+          placeholder='Name'
+          id='name'
+          className='bg-slate-100 p-3 rounded-lg'
+          onChange={handleChange}
+        />
+
+        {/* Username Input */}
         <input
           type='text'
           placeholder='Username'
@@ -47,6 +74,8 @@ export default function SignUp() {
           className='bg-slate-100 p-3 rounded-lg'
           onChange={handleChange}
         />
+
+        {/* Email Input */}
         <input
           type='email'
           placeholder='Email'
@@ -54,6 +83,38 @@ export default function SignUp() {
           className='bg-slate-100 p-3 rounded-lg'
           onChange={handleChange}
         />
+
+        {/* Phone Number Input */}
+        <input
+          type='tel'
+          placeholder='Phone Number'
+          id='phone'
+          className='bg-slate-100 p-3 rounded-lg'
+          onChange={handleChange}
+        />
+
+        {/* Address Input */}
+        <input
+          type='text'
+          placeholder='Address'
+          id='address'
+          className='bg-slate-100 p-3 rounded-lg'
+          onChange={handleChange}
+        />
+
+        {/* Role Dropdown */}
+        <select
+          id='role'
+          className='bg-slate-100 p-3 rounded-lg'
+          onChange={handleChange}
+        >
+          <option value=''>Select Role</option>
+          <option value='student'>Student</option>
+          <option value='mentor'>Mentor</option>
+          <option value='recruiter'>Recruiter</option>
+        </select>
+
+        {/* Password Input */}
         <input
           type='password'
           placeholder='Password'
@@ -61,13 +122,16 @@ export default function SignUp() {
           className='bg-slate-100 p-3 rounded-lg'
           onChange={handleChange}
         />
+
         <button
           disabled={loading}
           className='dark:bg-blue-500 shadow-md text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80'
         >
           {loading ? 'Loading...' : 'Sign Up'}
         </button>
+        
         <OAuth />
+
       </form>
       <div className='flex gap-2 mt-5'>
         <p>Have an account?</p>

@@ -1,17 +1,44 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FaCamera, FaMicrophone, FaStop } from "react-icons/fa";
+import axios from "axios";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const jobRoles = [
-  { id: 1, title: "Software Engineer" },
-  { id: 2, title: "Data Scientist" },
-  { id: 3, title: "Product Manager" },
+  { "id": 1, "title": "Software Engineer" },
+  { "id": 2, "title": "Frontend Developer" },
+  { "id": 3, "title": "Backend Developer" },
+  { "id": 4, "title": "Full Stack Developer" },
+  { "id": 5, "title": "Data Scientist" },
+  { "id": 6, "title": "Machine Learning Engineer" },
+  { "id": 7, "title": "DevOps Engineer" },
+  { "id": 8, "title": "QA Engineer" },
+  { "id": 9, "title": "UI/UX Designer" },
+  { "id": 10, "title": "Mobile App Developer" },
+  { "id": 11, "title": "Cloud Engineer" },
+  { "id": 12, "title": "Product Manager" },
+  { "id": 13, "title": "Cybersecurity Analyst" },
+  { "id": 14, "title": "Business Analyst" },
+  { "id": 15, "title": "System Administrator" },
+  { "id": 16, "title": "Network Engineer" },
+  { "id": 17, "title": "Database Administrator" },
+  { "id": 18, "title": "Game Developer" },
+  { "id": 19, "title": "Software Architect" },
+  { "id": 20, "title": "Technical Support Engineer" },
+  { "id": 21, "title": "IT Consultant" },
+  { "id": 22, "title": "Blockchain Developer" },
+  { "id": 23, "title": "Site Reliability Engineer" },
+  { "id": 24, "title": "Artificial Intelligence Engineer" },
+  { "id": 25, "title": "Embedded Systems Engineer" },
+  { "id": 26, "title": "Ethical Hacker" },
+  { "id": 27, "title": "Data Engineer" },
+  { "id": 28, "title": "Network Administrator" },
+  { "id": 29, "title": "Application Support Engineer" },
+  { "id": 30, "title": "Technical Writer" }
 ];
 
-const mockQuestions = [
-  { id: 1, question: "Can you explain your approach to solving complex technical problems?", correctAnswer: "I break down the problem into smaller, manageable parts, research potential solutions, and systematically implement and test each part." },
-  { id: 2, question: "How do you stay updated with the latest technologies in your field?", correctAnswer: "I regularly read tech blogs, attend webinars, participate in online courses, and contribute to open-source projects to stay current with industry trends." },
-  { id: 3, question: "Describe a challenging project you've worked on and how you overcame obstacles.", correctAnswer: "I led a team in developing a high-traffic web application. We faced scalability issues, which we resolved by implementing a microservices architecture and optimizing database queries." },
-];
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY; // For Vite
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
 
 const MockInterviewPage = () => {
   const [selectedRole, setSelectedRole] = useState("");
@@ -21,10 +48,60 @@ const MockInterviewPage = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [userAnswers, setUserAnswers] = useState([]);
   const [showResults, setShowResults] = useState(false);
-  const [cameraStream, setCameraStream] = useState(null); // Manage camera stream
-
+  const [questions, setQuestions] = useState([]);
+  const [score, setScore] = useState(0);
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
+  const [cameraStream, setCameraStream] = useState(null);
+  const [transcriptions, setTranscriptions] = useState([]);
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      if (!selectedRole || !experience) return;
+
+      try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        
+        const chatSession = await model.startChat({
+          generationConfig: {
+            temperature: 1,
+            topP: 0.95,
+            topK: 40,
+            maxOutputTokens: 8192,
+            responseMimeType: "text/plain",
+          },
+          history: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: `Job Position: ${selectedRole}, Year of experience: ${experience}. Based on this information, please give me 5 interview questions with answers in JSON format. Include 'Question' and 'Answer' fields.`,
+                },
+              ],
+            },
+          ],
+        });
+
+        const result = await chatSession.sendMessage("INSERT_INPUT_HERE");
+        let rawResponse = result.response.text();
+        rawResponse = rawResponse.replace(/```json|```/g, "").trim();
+        const questions = JSON.parse(rawResponse);
+        setQuestions(questions);
+  
+      } catch (error) {
+        console.error("Error fetching questions from Gemini:", error);
+        try {
+          const fallbackResponse = await axios.get(`/api/questions/${selectedRole}`);
+          setQuestions(fallbackResponse.data);
+        } catch (fallbackError) {
+          console.error("Error fetching fallback questions:", fallbackError);
+        }
+      }
+    };
+
+    fetchQuestions();
+  }, [selectedRole, experience]);
 
   const startInterview = () => {
     setIsInterviewStarted(true);
@@ -33,7 +110,7 @@ const MockInterviewPage = () => {
   const openCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      setCameraStream(stream); // Store the stream in state
+      setCameraStream(stream);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
@@ -45,48 +122,140 @@ const MockInterviewPage = () => {
   const closeCamera = () => {
     if (cameraStream) {
       const tracks = cameraStream.getTracks();
-      tracks.forEach(track => track.stop()); // Stop all the tracks in the stream
-      setCameraStream(null); // Clear the camera stream state
+      tracks.forEach(track => track.stop());
+      setCameraStream(null);
     }
   };
 
   const startRecording = () => {
-    navigator.mediaDevices
-      .getUserMedia({ audio: true })
-      .then((stream) => {
-        mediaRecorderRef.current = new MediaRecorder(stream);
-        mediaRecorderRef.current.start();
-        setIsRecording(true);
+  navigator.mediaDevices
+    .getUserMedia({ audio: true })
+    .then((stream) => {
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
 
-        const audioChunks = [];
-        mediaRecorderRef.current.addEventListener("dataavailable", (event) => {
-          audioChunks.push(event.data);
-        });
+      const audioChunks = [];
+      mediaRecorderRef.current.addEventListener("dataavailable", (event) => {
+        audioChunks.push(event.data);
+      });
 
-        mediaRecorderRef.current.addEventListener("stop", () => {
-          const audioBlob = new Blob(audioChunks);
-          const audioUrl = URL.createObjectURL(audioBlob);
-          setUserAnswers([...userAnswers, { questionId: currentQuestionIndex + 1, audioUrl }]);
-        });
-      })
-      .catch((error) => console.error("Error accessing microphone:", error));
-  };
+      mediaRecorderRef.current.addEventListener("stop", async () => {
+        const audioBlob = new Blob(audioChunks);
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setUserAnswers(prevAnswers => [
+          ...prevAnswers,
+          { questionId: currentQuestionIndex, audioUrl }
+        ]);
+
+        // Convert audio to text and evaluate with Gemini
+        try {
+          const transcription = await transcribeAudio(audioBlob);
+          setTranscriptions(prev => [...prev, transcription]);
+        } catch (error) {
+          console.error("Transcription error:", error);
+        }
+      });
+
+      // Start speech recognition
+      recognition.stop();
+    })
+    .catch((error) => console.error("Error accessing microphone:", error));
+};
+
+  
+  // New function to transcribe audio
+  const transcribeAudio = (audioBlob) => {
+    
+    return new Promise((resolve, reject) => {
+        recognition.onresult = (event) => {
+            const transcript = event.results[event.results.length - 1][0].transcript; // Get the latest result
+            resolve(transcript);
+        };
+
+        recognition.onerror = (event) => {
+            if (event.error === 'no-speech') {
+                console.warn("No speech was detected. Please try again.");
+            } else {
+                console.error("Speech recognition error:", event.error);
+            }
+            reject(event.error);
+        };
+
+        // Start the recognition process
+     
+
+    });
+};
+
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      recognition.start();
 
-      if (currentQuestionIndex < mockQuestions.length - 1) {
+      if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else {
+        calculateScore();
         setShowResults(true);
       }
     }
   };
 
+  const calculateSimilarity = (text1, text2) => {
+    if (!text1 || !text2) return 0; // Handle empty cases
+  
+    const words1 = text1.toLowerCase().split(/\s+/);
+    const words2 = text2.toLowerCase().split(/\s+/);
+    const uniqueWords = new Set([...words1, ...words2]);
+    const intersection = words1.filter(word => words2.includes(word)).length;
+  
+    return intersection / uniqueWords.size; // Use unique words for the denominator
+  };
+  
+
   const calculateScore = () => {
-    return Math.floor(Math.random() * 11);
+    let totalScore = 0;
+
+    const calculatedAnswers = userAnswers.map((answer, index) => {
+        const correctAnswer = questions[index]?.Answer || "";
+        const similarityScore = calculateSimilarity(transcriptions[index] || "", correctAnswer);
+
+        // Accumulate the score based on similarity
+        totalScore += similarityScore;
+
+        // Analyze the user's response for depth and understanding
+        let understandingScore = 0;
+        if (transcriptions[index]?.includes("specific keyword or concept")) {
+            understandingScore += 0.2; // Adjust scores based on the presence of critical keywords
+        }
+
+        // Calculate final score considering both similarity and understanding
+        const finalScore = (similarityScore + understandingScore) / 2;
+
+        // Provide tailored feedback
+        let feedback;
+        if (finalScore >= 0.8) {
+            feedback = "Excellent! You demonstrated a clear understanding.";
+        } else if (finalScore >= 0.5) {
+            feedback = "Good attempt, but try to incorporate more detailed explanations.";
+        } else {
+            feedback = "Consider revisiting this topic; your answer lacks depth.";
+        }
+
+        return { ...answer, similarityScore: finalScore, feedback };
+    });
+
+    // Set state for calculated answers and score
+    setUserAnswers(calculatedAnswers);
+    setScore(Math.round((totalScore / questions.length) * 10)); // Convert score to a 0-10 scale
+};
+
+
+  const getFeedback = (index) => {
+    return userAnswers[index]?.feedback || "Consider revisiting the topic for better clarity.";
   };
 
   return (
@@ -133,61 +302,45 @@ const MockInterviewPage = () => {
       ) : showResults ? (
         <div className="space-y-8 bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-3xl font-semibold text-center text-blue-600">Interview Results</h2>
-          <p className="text-2xl text-center">Your score: <span className="font-bold text-green-600">{calculateScore()} / 10</span></p>
-          <div>
-            <h3 className="text-2xl font-semibold mb-4">Your Answers:</h3>
+          <p className="text-2xl text-center">Your score: <span className="font-bold">{score}</span></p>
+          <ul className="space-y-4">
             {userAnswers.map((answer, index) => (
-              <div key={index} className="mb-6 p-6 bg-gray-50 rounded-lg">
-                <p className="font-semibold text-lg text-blue-700 mb-2">{mockQuestions[index].question}</p>
-                <audio src={answer.audioUrl} controls className="w-full mb-4" />
-                <p className="mb-2"><strong>Sample Answer:</strong> {mockQuestions[index].correctAnswer}</p>
-                <p className="text-green-600"><strong>Feedback:</strong> Good attempt! Consider providing more specific technical examples and focusing on your problem-solving approach in your answer.</p>
-              </div>
+              <li key={index} className="bg-gray-200 p-4 rounded-md">
+                <p><strong>Question:</strong> {questions[index]?.Question}</p>
+                <audio controls src={answer.audioUrl} />
+                <p className="mb-2  text-red-600"><strong>Your Answer:</strong> {transcriptions[index]}</p>
+                <p className="mb-2  text-green-600"><strong>Sample Answer:</strong> {questions[index]?.Answer}</p>
+                <p className="mb-2  text-blue-600"><strong>Feedback:</strong> {getFeedback(index)}</p>
+              </li>
             ))}
-          </div>
+          </ul>
+          <button
+            className="bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 transition duration-300 ease-in-out"
+            onClick={() => window.location.reload()}
+          >
+            Retake Interview
+          </button>
         </div>
       ) : (
-        <div className="space-y-8 bg-white p-6 rounded-lg shadow-md">
-          <div className="flex justify-between items-center">
-            <h2 className="text-3xl font-semibold text-blue-600">Technical Question {currentQuestionIndex + 1}</h2>
-            
-            {/* Toggle Camera Button */}
-            {cameraStream ? (
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-300 ease-in-out"
-                onClick={closeCamera}
-              >
-                Close Camera
-              </button>
-            ) : (
-              <button
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300 ease-in-out"
-                onClick={openCamera}
-              >
-                <FaCamera className="inline mr-2" /> Open Camera
-              </button>
-            )}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-3xl font-semibold mb-4">Interview Questions</h2>
+          <p className="mb-4">{questions[currentQuestionIndex]?.Question}</p>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={openCamera}
+              className="bg-green-500 text-white p-2 rounded-md"
+            >
+              <FaCamera />
+            </button>
+            <button
+              onClick={isRecording ? stopRecording : startRecording}
+              className={`bg-red-500 text-white p-2 rounded-md ${isRecording ? "hover:bg-red-600" : "hover:bg-red-400"}`}
+            >
+              {isRecording ? <FaStop /> : <FaMicrophone />}
+            </button>
           </div>
-
-          <video ref={videoRef} autoPlay playsInline muted className="w-full h-64 bg-black rounded-lg" />
-
-          <p className="text-xl font-medium">{mockQuestions[currentQuestionIndex].question}</p>
-
-          {!isRecording ? (
-            <button
-              className="w-full bg-green-500 text-white px-6 py-3 rounded-md hover:bg-green-600 transition duration-300 ease-in-out"
-              onClick={startRecording}
-            >
-              <FaMicrophone className="inline mr-2" /> Start Recording
-            </button>
-          ) : (
-            <button
-              className="w-full bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition duration-300 ease-in-out"
-              onClick={stopRecording}
-            >
-              <FaStop className="inline mr-2" /> Stop Recording
-            </button>
-          )}
+          <video ref={videoRef} autoPlay muted className="mt-4" />
+          {isRecording && <p className="mt-2 text-sm text-gray-600">Recording your answer...</p>}
         </div>
       )}
     </div>

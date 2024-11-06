@@ -27,6 +27,7 @@ const Dashboard = () => {
       <DashboardCard icon={<FaRobot />} title="AI Interview Assistant" content="Practice your next interview" />
       <DashboardCard icon={<FaBookOpen />} title="Curated Courses" content="10 recommended courses for you" />
       <DashboardCard icon={<FaBriefcase />} title="Job Portal" content="15 new job openings match your profile" />
+      
     </div>
   );
 
@@ -89,7 +90,7 @@ const Dashboard = () => {
         <div className="bg-gray-100 p-4 rounded-lg">
           <h3 className="text-xl font-semibold mb-2">LeetCode-style Challenges</h3>
           <p className="text-gray-600 mb-4">Complete coding challenges to assess your skills</p>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center">
+          <button onClick={() => navigate('/SkillAssessment')}className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center">
             <SiLeetcode className="mr-2" /> Start Challenge
           </button>
         </div>
@@ -148,18 +149,106 @@ const Dashboard = () => {
     </div>
   );
 
+  const renderJobRecommendation = () => (
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-4">Job Portal</h2>
+      <div className="bg-gray-100 p-4 rounded-lg mb-6">
+        <h3 className="text-xl font-semibold mb-2">Latest Job Openings</h3>
+        <p className="text-gray-600 mb-4">Explore and apply for the latest job opportunities tailored for you.</p>
+        <button
+          onClick={() => navigate('/JobRecommendation')} // Navigate to Job Listings Page
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center"
+        >
+          <FaBriefcase className="mr-2" /> Start Applying
+        </button>
+      </div>
+      <div className="bg-gray-100 p-4 rounded-lg">
+        <h3 className="text-xl font-semibold mb-2">Application Tips</h3>
+        <ul className="list-disc list-inside text-gray-600">
+          <li>Customize your resume for each application</li>
+          <li>Highlight relevant skills and accomplishments</li>
+          <li>Follow application instructions carefully</li>
+          <li>Reach out for referrals if possible</li>
+        </ul>
+      </div>
+    </div>
+  );
+  
+  const renderCourseRecommendation = (recommendations) => (
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-4">Course Recommendations</h2>
+      <div className="bg-gray-100 p-4 rounded-lg mb-6">
+        <h3 className="text-xl font-semibold mb-2">Recommended Courses for Your Job Role</h3>
+        <p className="text-gray-600 mb-4">
+          Explore these courses to enhance your skills and boost your career opportunities.
+        </p>
+        <button
+          onClick={() => navigate('/CourseRecommendation')} // Navigate to Job Listings Page
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center"
+        >
+          <FaBookOpen  className="mr-2" /> Start Applying
+        </button>
+      </div>
+      <div className="bg-gray-100 p-4 rounded-lg">
+        <h3 className="text-xl font-semibold mb-2">Study Tips</h3>
+        <ul className="list-disc list-inside text-gray-600">
+          <li>Set aside dedicated time for study each week.</li>
+          <li>Practice with hands-on projects to reinforce learning.</li>
+          <li>Join study groups or online communities for support.</li>
+          <li>Stay updated on industry trends and technologies.</li>
+        </ul>
+      </div>
+    </div>
+  );
+
+  const renderRoadmap = () => (
+  <div className="bg-white p-6 rounded-lg shadow-md">
+    <h2 className="text-2xl font-bold mb-4">Career Roadmap</h2>
+    <div className="bg-gray-100 p-4 rounded-lg mb-6">
+      <h3 className="text-xl font-semibold mb-2">Recommended Learning Path for Your Job Role</h3>
+      <p className="text-gray-600 mb-4">
+        Follow this roadmap to enhance your skills and advance your career. 
+        Explore the recommended courses and resources tailored for your job role.
+      </p>
+      <button
+        onClick={() => navigate('/Roadmap')} // Navigate to Roadmap Page
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center"
+      >
+        <FaChartLine  className="mr-2" /> Start Your Journey
+      </button>
+    </div>
+    <div className="bg-gray-100 p-4 rounded-lg">
+      <h3 className="text-xl font-semibold mb-2">Study Tips for Success</h3>
+      <ul className="list-disc list-inside text-gray-600">
+        <li>Set specific goals and milestones for your learning journey.</li>
+        <li>Engage in hands-on projects to apply your knowledge practically.</li>
+        <li>Participate in study groups or forums for collaborative learning.</li>
+        <li>Keep abreast of industry trends and continuously update your skills.</li>
+      </ul>
+    </div>
+  </div>
+);
+
+  
+  
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
         return renderDashboard();
-      case 'profile':
-        return renderProfileSetup();
+     
       case 'assessment':
         return renderSkillAssessment();
       case 'mentorship':
         return renderMentorship();
       case 'interview':
         return renderAIInterview();
+      case 'jobrecommendation':
+        return renderJobRecommendation();
+      case 'courserecommendation':
+        return renderCourseRecommendation();
+      case 'roadmap':
+          return renderRoadmap();
       default:
         return renderDashboard();
     }
@@ -175,10 +264,14 @@ const Dashboard = () => {
           <ul>
             {[
               { id: 'dashboard', icon: <FaChartLine />, label: 'Dashboard' },
-              { id: 'profile', icon: <FaUser />, label: 'Profile Setup' },
+             
               { id: 'assessment', icon: <FaCode />, label: 'Skill Assessment' },
               { id: 'mentorship', icon: <FaMoneyBillWave />, label: 'Mentorship' },
               { id: 'interview', icon: <FaRobot />, label: 'AI Interview' },
+              { id: 'jobrecommendation', icon: <FaBriefcase />, label: 'Apply to Jobs' },
+              { id: 'courserecommendation', icon: <FaBookOpen />, label: 'Courses' },
+              { id: 'roadmap', icon: <FaChartLine />, label: 'Roadmap' },
+
             ].map((item) => (
               <li key={item.id} className="mb-2">
                 <button

@@ -8,6 +8,10 @@ import Header from './components/Header';
 import PrivateRoute from './components/PrivateRoute';
 import Dashboard from './pages/Dashboard';
 import MockInterviewPage from './pages/MockInterviewPage'; 
+import SkillAssessment from './pages/SkillAssessment';
+import JobRecommendation from './pages/JobRecommendation';
+import CourseRecommendation from './pages/CourseRecommendation';
+import Roadmap from './pages/Roadmap';
 export default function App() {
   return (
     <BrowserRouter>
@@ -23,8 +27,11 @@ export default function App() {
         </Route>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/mock-interview" element={<MockInterviewPage />} />
+        <Route path="/SkillAssessment" element={<SkillAssessment />} />
+        <Route path="/JobRecommendation" element={<JobRecommendation />} />
+        <Route path="/CourseRecommendation" element={<CourseRecommendation />} />
+        <Route path="/roadmap" element={<Roadmap />} />
 
-        
       </Routes>
     </BrowserRouter>
   );

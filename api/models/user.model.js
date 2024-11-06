@@ -1,30 +1,47 @@
 import mongoose from 'mongoose';
 
-const userSchema = new mongoose.Schema(
-  {
-    username: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    profilePicture: {
-      type: String,
-      default:
-        'https://img.freepik.com/premium-vector/man-avatar-profile-picture-vector-illustration_268834-538.jpg',
-    },
+const UserSchema = new mongoose.Schema({
+  username: { 
+    type: String, 
+    required: true, 
+    unique: true,
+    minlength: 3, // Minimum length validation
+    maxlength: 30 // Maximum length validation
   },
-  { timestamps: true }
-);
+  email: { 
+    type: String, 
+    required: true, 
+    unique: true, 
+    match: [/.+@.+\..+/, 'Please enter a valid email address'] // Email format validation
+  },
+  password: { 
+    type: String, 
+    required: true,
+    minlength: 6 // Ensuring a minimum password length for security
+  },
+  phone: { 
+    type: String, 
+    match: [/^\d{10}$/, 'Please enter a valid 10-digit phone number'] // Format validation for phone numbers
+  },
+  address: { type: String },
+  role: { 
+    type: String, 
+    required: true, 
+    enum: ['student', 'Recruiter','Mentor'], // Only allows 'user' or 'admin' roles
+    default: 'student' // Sets 'user' as the default role
+  },
+  profilePicture: { type: String },
+  niches: {
+    firstNiche: { type: String }, 
+    secondNiche: { type: String },
+    thirdNiche: { type: String },
+  },
+  coverLetter: { type: String },
+}, { timestamps: true });
 
-const User = mongoose.model('User', userSchema);
+// Adding indexes for commonly searched fields
+UserSchema.index({ email: 1 });
+UserSchema.index({ username: 1 });
 
-export default User;
+// Exporting the User model
+export default mongoose.model('User', UserSchema);
