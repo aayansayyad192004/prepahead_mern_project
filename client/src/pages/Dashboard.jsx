@@ -88,7 +88,7 @@ const Dashboard = () => {
       <h2 className="text-2xl font-bold mb-4">Skill Assessment</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="bg-gray-100 p-4 rounded-lg">
-          <h3 className="text-xl font-semibold mb-2">LeetCode-style Challenges</h3>
+          <h3 className="text-xl font-semibold mb-2">Technical Problem Solving</h3>
           <p className="text-gray-600 mb-4">Complete coding challenges to assess your skills</p>
           <button onClick={() => navigate('/SkillAssessment')}className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center">
             <SiLeetcode className="mr-2" /> Start Challenge
@@ -186,7 +186,7 @@ const Dashboard = () => {
           onClick={() => navigate('/CourseRecommendation')} // Navigate to Job Listings Page
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center"
         >
-          <FaBookOpen  className="mr-2" /> Start Applying
+          <FaBookOpen  className="mr-2" /> Start Learning
         </button>
       </div>
       <div className="bg-gray-100 p-4 rounded-lg">

@@ -3,98 +3,91 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRoutes from './routes/user.route.js';
 import authRoutes from './routes/auth.route.js';
-import User from './models/user.model.js';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import axios from 'axios';
+import cors from 'cors';
+
 dotenv.config();
+const PORT = process.env.PORT || 3000;
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
-  .catch((err) => {
-    console.log(err);
-  });
-
-const __dirname = path.resolve();
+// Set __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(express.static(path.join(__dirname, '/client/dist')));
+// MongoDB connection
+mongoose
+  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('Error connecting to MongoDB:', err.message));
 
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'client', 'dist')));
 
+// API Routes
+app.use('/api/user', userRoutes);
+app.use('/api/auth', authRoutes);
+
+app.get('/api/jobs', async (req, res) => {
+  const { search, location, country } = req.query;
+
+  try {
+    const response = await axios.get(`https://serpapi.com/search.json`, {
+      params: {
+        engine: 'google_jobs',
+        q: search,
+        location: `${location}, ${country}`,
+        api_key: process.env.SERPAPI_API_KEY,
+      },
+    });
+
+    if (response.data.jobs_results) {
+      const jobs = response.data.jobs_results.map((job) => ({
+        title: job.title,
+        company: job.company_name,
+        location: job.location,
+        apply_link: job.job_apply_link || job.link,
+      }));
+      res.json(jobs);
+    } else {
+      res.status(404).json({ message: 'No jobs found' });
+    }
+  } catch (error) {
+    console.error('Error fetching jobs:', error.message);
+    res.status(500).json({ message: 'Error fetching jobs', error: error.message });
+  }
+});
+
+// Fallback for serving client
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
 });
 
-app.use(express.json());
-
-app.use(cookieParser());
-
-app.listen(3000, () => {
-  console.log('Server listening on port 3000');
-});
-
-app.post('/api/user/update/:id', async (req, res) => {
-  console.log('Update route reached'); // Debug log
-  const { id } = req.params; // Get user ID from params
-  const { phoneNumber, resumeURL } = req.body; // Extract data from body
-
-  try {
-      // Find the user and update their details
-      const updatedUser = await User.findByIdAndUpdate(id, { phoneNumber, resumeURL }, { new: true });
-      if (!updatedUser) {
-          return res.status(404).json({ message: 'User not found' });
-      }
-      res.status(200).json(updatedUser); // Send back updated user data
-  } catch (error) {
-      console.error('Update error:', error); // Improved error logging
-      res.status(500).json({ message: 'Internal server error' });
+// 404 route for unmatched API endpoints
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    res.status(404).json({ message: 'API route not found' });
+  } else {
+    next();
   }
 });
 
-app.post('/api/user/update/:id', async (req, res) => {
-  const userId = req.params.id;
-  const { username, email, phoneNumber, address, resumeURL } = req.body;
-
-  try {
-      const updatedUser = await User.findByIdAndUpdate(
-          userId,
-          { username, email, phoneNumber, address, resumeURL },
-          { new: true, runValidators: true } // Returns the updated document with validation
-      );
-
-      if (!updatedUser) {
-          return res.status(404).json({ message: 'User not found' });
-      }
-
-      res.status(200).json(updatedUser);
-  } catch (error) {
-      console.error('Update error:', error);
-      res.status(500).json({ message: 'Internal server error' });
-  }
-});
-app.delete('/api/user/delete/:id', async (req, res) => {
-  try {
-      const userId = req.params.id;
-      // Your logic to delete the user goes here.
-      res.status(200).send({ message: 'User deleted successfully' });
-  } catch (error) {
-      console.error(error);
-      res.status(500).send({ message: 'Failed to delete user' });
-  }
-});
-
-app.use('/api/user', userRoutes);
-app.use('/api/auth', authRoutes);
-
+// Global error handler
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
-  return res.status(statusCode).json({
+  res.status(statusCode).json({
     success: false,
-    message,
-    statusCode,
+    message: err.message || 'Internal Server Error',
   });
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
 });

@@ -8,34 +8,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const jobRoles = [
   { "id": 1, "title": "Software Engineer" },
   { "id": 2, "title": "Frontend Developer" },
-  { "id": 3, "title": "Backend Developer" },
-  { "id": 4, "title": "Full Stack Developer" },
-  { "id": 5, "title": "Data Scientist" },
-  { "id": 6, "title": "Machine Learning Engineer" },
-  { "id": 7, "title": "DevOps Engineer" },
-  { "id": 8, "title": "QA Engineer" },
-  { "id": 9, "title": "UI/UX Designer" },
-  { "id": 10, "title": "Mobile App Developer" },
-  { "id": 11, "title": "Cloud Engineer" },
-  { "id": 12, "title": "Product Manager" },
-  { "id": 13, "title": "Cybersecurity Analyst" },
-  { "id": 14, "title": "Business Analyst" },
-  { "id": 15, "title": "System Administrator" },
-  { "id": 16, "title": "Network Engineer" },
-  { "id": 17, "title": "Database Administrator" },
-  { "id": 18, "title": "Game Developer" },
-  { "id": 19, "title": "Software Architect" },
-  { "id": 20, "title": "Technical Support Engineer" },
-  { "id": 21, "title": "IT Consultant" },
-  { "id": 22, "title": "Blockchain Developer" },
-  { "id": 23, "title": "Site Reliability Engineer" },
-  { "id": 24, "title": "Artificial Intelligence Engineer" },
-  { "id": 25, "title": "Embedded Systems Engineer" },
-  { "id": 26, "title": "Ethical Hacker" },
-  { "id": 27, "title": "Data Engineer" },
-  { "id": 28, "title": "Network Administrator" },
-  { "id": 29, "title": "Application Support Engineer" },
-  { "id": 30, "title": "Technical Writer" }
+  // ... other roles
 ];
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY; // For Vite
@@ -53,11 +26,11 @@ const SkillAssessment = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       if (!selectedRole || !experience) return;
-    
+
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    
+        const model = await genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
         const chatSession = await model.startChat({
           generationConfig: {
             temperature: 1,
@@ -77,38 +50,32 @@ const SkillAssessment = () => {
             },
           ],
         });
-    
+
         const result = await chatSession.sendMessage("INSERT_INPUT_HERE");
         let rawResponse = await result.response.text();
-    
-        // Clean the response and ensure it is valid JSON format
-        rawResponse = rawResponse
-          .replace(/```json/g, "")
-          .replace(/```/g, "")
-          .replace(/\n/g, "")
-          .replace(/[\s]+/g, " ");
-        
+
         // Log the response to debug
         console.log("Raw Response: ", rawResponse);
-    
-        // Ensure the response has double quotes for JSON keys and values
-        rawResponse = rawResponse.replace(/'([^']+)'/g, '"$1"');
-    
-        // Now parse the JSON safely
+
+        // Ensure valid JSON by cleaning the response
+        rawResponse = rawResponse.replace(/```json|```|\n/g, "").trim();
+
         try {
-          const questionsData = JSON.parse(rawResponse); // Parse JSON
-          setQuestions(questionsData.map((question) => ({
-            ...question,
-            TestCases: question.TestCases || [], // Ensure TestCases exists
-          })));
+          const questionsData = JSON.parse(rawResponse);
+          setQuestions(
+            questionsData.map((question) => ({
+              ...question,
+              TestCases: question.TestCases || [],
+            }))
+          );
         } catch (parseError) {
           console.error("Error parsing JSON response:", parseError);
           throw parseError;
         }
-    
+
       } catch (error) {
         console.error("Error fetching questions from Gemini:", error);
-        // Fetch fallback questions if error occurs
+
         try {
           const fallbackResponse = await axios.get(`/api/questions/${selectedRole}`);
           setQuestions(fallbackResponse.data);
@@ -117,12 +84,9 @@ const SkillAssessment = () => {
         }
       }
     };
-    
-  
+
     fetchQuestions();
   }, [selectedRole, experience]);
-  
-  
 
   const startAssessment = () => {
     setIsAssessmentStarted(true);
@@ -150,12 +114,11 @@ const SkillAssessment = () => {
       const userAnswer = userAnswers[index];
       if (question.Type === "MCQ") {
         if (userAnswer === question.Answer) {
-          totalScore += 1; // Award 1 point for correct MCQ answer
+          totalScore += 1;
         }
       } else if (question.Type === "Coding") {
-        // For coding questions, check if an answer was provided
         if (userAnswer && userAnswer.trim().length > 0) {
-          totalScore += 1; // Assume any provided answer counts as correct for now
+          totalScore += 1;
         }
       }
     });
@@ -234,10 +197,14 @@ const SkillAssessment = () => {
                 <ul className="space-y-2">
                   {questions[currentQuestionIndex]?.Options.map((option, index) => (
                     <li key={index} className="flex items-center">
-                     <input type="radio" name={`question-${currentQuestionIndex}`} id={`option-${index}`} value={option}
-                       onChange={(e) => handleAnswerChange(currentQuestionIndex, e.target.value)}
-                    />
-                    <label htmlFor={`option-${index}`} className="ml-2">{option}</label>
+                      <input
+                        type="radio"
+                        name={`question-${currentQuestionIndex}`}
+                        id={`option-${index}`}
+                        value={option}
+                        onChange={(e) => handleAnswerChange(currentQuestionIndex, e.target.value)}
+                      />
+                      <label htmlFor={`option-${index}`} className="ml-2">{option}</label>
                     </li>
                   ))}
                 </ul>
@@ -263,14 +230,12 @@ const SkillAssessment = () => {
                   ))}
                 </div>
               )}
-              <div className="mt-4">
-                <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300 ease-in-out"
-                  onClick={nextQuestion}
-                >
-                  {currentQuestionIndex < questions.length - 1 ? "Next Question" : "Submit Assessment"}
-                </button>
-              </div>
+              <button
+                className="w-full mt-4 bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 transition duration-300 ease-in-out"
+                onClick={nextQuestion}
+              >
+                {currentQuestionIndex === questions.length - 1 ? "Submit" : "Next"}
+              </button>
             </>
           )}
         </div>
@@ -279,4 +244,4 @@ const SkillAssessment = () => {
   );
 };
 
-export default SkillAssessment; 
+export default SkillAssessment;

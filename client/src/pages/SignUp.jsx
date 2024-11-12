@@ -23,6 +23,11 @@ export default function SignUp() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+     // Client-side validation (Optional: Check if fields are empty)
+     if (!formData.phone || !formData.address) {
+      setError(true);
+      return;
+    }
     try {
       setLoading(true);
       setError(false);

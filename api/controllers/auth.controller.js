@@ -3,59 +3,53 @@ import bcryptjs from 'bcryptjs';
 import { errorHandler } from '../utils/error.js';
 import jwt from 'jsonwebtoken';
 
-// Signup Controller
 export const signup = async (req, res, next) => {
-  const { username, email, password, phone, address, role, firstNiche, secondNiche, thirdNiche, coverLetter } = req.body;
+  // Destructure all the necessary fields from the request body
+  const { username, email, password, phone, address } = req.body;
 
-  // Ensure Job Seeker provides all niche fields
-  if (role === "Job Seeker" && (!firstNiche || !secondNiche || !thirdNiche)) {
-    return next(errorHandler(400, "Please provide your preferred job niches."));
-  }
-
+  // Hash the password using bcryptjs
   const hashedPassword = bcryptjs.hashSync(password, 10);
 
+  // Create a new user with the additional phone and address fields
   const newUser = new User({
     username,
     email,
     password: hashedPassword,
-    phone,
-    address,
-    role,
-    niches: {
-      firstNiche,
-      secondNiche,
-      thirdNiche,
-    },
-    coverLetter,
+    phone,  // Add phone field
+    address // Add address field
   });
 
   try {
+    // Save the new user to the database
     await newUser.save();
-    res.status(201).json({ success: true, message: 'User created successfully' }); // Success response
+    res.status(201).json({ message: 'User created successfully' });
   } catch (error) {
-    // Handle specific error for duplicate keys
-    if (error.code === 11000) {
-      return res.status(400).json({ success: false, message: 'Email or Username already exists.' }); // Duplicate error response
-    }
+    // Handle any errors that occur during user creation
     next(error);
   }
 };
 
-// Signin Controller
 export const signin = async (req, res, next) => {
   const { email, password } = req.body;
-
   try {
+    // Find the user by email
     const validUser = await User.findOne({ email });
     if (!validUser) return next(errorHandler(404, 'User not found'));
 
+    // Check if the password is valid
     const validPassword = bcryptjs.compareSync(password, validUser.password);
     if (!validPassword) return next(errorHandler(401, 'Wrong credentials'));
 
+    // Create a JWT token
     const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
-    const { password: hashedPassword, ...rest } = validUser._doc;
-    const expiryDate = new Date(Date.now() + 3600000); // 1 hour token expiry
 
+    // Destructure the user document to exclude the password
+    const { password: hashedPassword, ...rest } = validUser._doc;
+
+    // Set the token expiration to 1 hour
+    const expiryDate = new Date(Date.now() + 3600000); // 1 hour
+
+    // Send the token and user data in the response
     res
       .cookie('access_token', token, { httpOnly: true, expires: expiryDate })
       .status(200)
@@ -65,35 +59,31 @@ export const signin = async (req, res, next) => {
   }
 };
 
-// Signout Controller
-export const signout = (req, res) => {
-  res.clearCookie('access_token').status(200).json('Signout success!');
-};
-
-// Google OAuth Controller
 export const google = async (req, res, next) => {
   try {
+    // Try to find the user by email
     const user = await User.findOne({ email: req.body.email });
     if (user) {
-      // If user exists, generate JWT and respond
+      // If the user exists, create a JWT token
       const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-      const { password: hashedPassword, ...rest } = user._doc;
-      const expiryDate = new Date(Date.now() + 3600000); // 1 hour token expiry
 
+      // Destructure the user document to exclude the password
+      const { password: hashedPassword, ...rest } = user._doc;
+
+      // Set the token expiration to 1 hour
+      const expiryDate = new Date(Date.now() + 3600000); // 1 hour
+
+      // Send the token and user data in the response
       res
-        .cookie('access_token', token, {
-          httpOnly: true,
-          expires: expiryDate,
-        })
+        .cookie('access_token', token, { httpOnly: true, expires: expiryDate })
         .status(200)
         .json(rest);
     } else {
-      // If user doesn't exist, create a new user with Google info
+      // If the user doesn't exist, create a new user
       const generatedPassword =
         Math.random().toString(36).slice(-8) +
         Math.random().toString(36).slice(-8);
       const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
-
       const newUser = new User({
         username:
           req.body.name.split(' ').join('').toLowerCase() +
@@ -101,26 +91,31 @@ export const google = async (req, res, next) => {
         email: req.body.email,
         password: hashedPassword,
         profilePicture: req.body.photo,
-        phone: '', // Optionally handle phone later
-        address: '', // Optionally handle address later
-        role: 'Job Seeker', // Default role can be changed later
       });
 
+      // Save the new user to the database
       await newUser.save();
 
+      // Create a JWT token for the new user
       const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
-      const { password: hashedPassword2, ...rest } = newUser._doc;
-      const expiryDate = new Date(Date.now() + 3600000); // 1 hour token expiry
 
+      // Destructure the new user document to exclude the password
+      const { password: hashedPassword2, ...rest } = newUser._doc;
+
+      // Set the token expiration to 1 hour
+      const expiryDate = new Date(Date.now() + 3600000); // 1 hour
+
+      // Send the token and user data in the response
       res
-        .cookie('access_token', token, {
-          httpOnly: true,
-          expires: expiryDate,
-        })
+        .cookie('access_token', token, { httpOnly: true, expires: expiryDate })
         .status(200)
         .json(rest);
     }
   } catch (error) {
     next(error);
   }
+};
+
+export const signout = (req, res) => {
+  res.clearCookie('access_token').status(200).json('Signout success!');
 };

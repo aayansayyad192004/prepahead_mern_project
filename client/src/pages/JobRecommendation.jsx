@@ -1,200 +1,99 @@
-import React, { useState, useEffect } from "react";
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import PropTypes from "prop-types";
+import React, { useState } from 'react';
+import axios from 'axios';
 
-const jobRoles = [
-  { id: 1, title: "Software Engineer" },
-  { id: 2, title: "Data Scientist" },
-  { id: 3, title: "Product Manager" },
-  { id: 4, title: "Web Developer" },
-  { id: 5, title: "Data Analyst" },
-];
+const JobRecommendation = () => {
+  const [search, setSearch] = useState('');
+  const [location, setLocation] = useState('');
+  const [country, setCountry] = useState('');
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY; // For Vite
-
-const JobRecommendations = () => {
-  const [selectedRole, setSelectedRole] = useState("");
-  const [experience, setExperience] = useState("");
-  const [location, setLocation] = useState("");
-  const [technologies, setTechnologies] = useState("");
-  const [companyType, setCompanyType] = useState("");
-  const [showRecommendations, setShowRecommendations] = useState(false);
-  const [recommendations, setRecommendations] = useState({ status: "idle", data: [], error: null });
-
-  const fetchRecommendations = async () => {
-    if (!selectedRole || !experience) return;
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
     try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-      const chatSession = await model.startChat({
-        generationConfig: {
-          temperature: 1,
-          topP: 0.95,
-          topK: 40,
-          maxOutputTokens: 8192,
-          responseMimeType: "text/plain",
-        },
-        history: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: `Please provide current job openings based on the following criteria: Job Position: ${selectedRole}, Years of Experience: ${experience}, Location: ${location}, Technologies: ${technologies}, Company Type: ${companyType}. Please provide details such as job title, company name, location, job description, and application link.`,
-              },
-            ],
-          },
-        ],
+      const response = await axios.get('/api/jobs', {
+        params: { search, location, country },
       });
-
-      const result = await chatSession.sendMessage("INSERT_INPUT_HERE");
-      const rawResponse = await result.response.text();
-
-      // Process the response to extract job recommendations
-      const formattedRecommendations = rawResponse.split("\n").filter(item => item).map(item => item.trim());
-      const jobRecommendations = formattedRecommendations.map(rec => {
-        const [title, description, link] = rec.split("|"); // Assuming your response format is title|description|link
-        return { title, description, link: link || "#" }; // Default to "#" if link is undefined
-      });
-      setRecommendations({ status: "success", data: jobRecommendations });
-    } catch (error) {
-      console.error("Error fetching recommendations from Gemini:", error);
-      setRecommendations({ status: "error", error: "Error fetching job recommendations." });
+      // Ensure jobs is an array, even if the response is empty or unexpected
+      setJobs(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      setError(err.response ? err.response.data.message : 'Error fetching jobs');
+    } finally {
+      setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    if (showRecommendations) {
-      fetchRecommendations();
-    }
-  }, [showRecommendations, selectedRole, experience, location, technologies, companyType]);
-
-  const handleGetRecommendations = () => {
-    setShowRecommendations(true);
-  };
-
-  const handleBack = () => {
-    setShowRecommendations(false);
-  };
-
-  const RecommendationItem = ({ title, description, link }) => (
-    <li className="bg-gray-100 p-4 rounded-md shadow-sm hover:shadow-lg transition-shadow duration-300">
-      <h3 className="font-semibold text-lg text-gray-800">{title}</h3>
-      <p>{description || "No description provided."}</p>
-      <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline hover:text-blue-700 transition-colors duration-200">
-        Apply Now
-      </a>
-    </li>
-  );
-
-  RecommendationItem.propTypes = {
-    title: PropTypes.string.isRequired,
-    description: PropTypes.string,
-    link: PropTypes.string.isRequired,
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-gray-50 min-h-screen">
-      <h1 className="text-5xl font-bold mb-8 text-center text-blue-700">Job Recommendations</h1>
+    <div className="p-8 max-w-3xl max-h-4xl mt-9 mx-auto bg-white shadow-lg rounded-lg">
+      <h2 className="text-5xl font-bold mb-8 text-center text-blue-700">Job Recommendations</h2>
+      
+      <form onSubmit={handleSearch} className="flex flex-col gap-4 mb-8">
+        <input
+          type="text"
+          placeholder="Job Title"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+        />
+        <input
+          type="text"
+          placeholder="Location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+        />
+        <input
+          type="text"
+          placeholder="Country"
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+          className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-200 font-semibold shadow-md"
+        >
+          Search
+        </button>
+      </form>
 
-      {!showRecommendations ? (
-        <div className="bg-white p-8 rounded-lg shadow-lg space-y-6 max-w-xl mx-auto border border-gray-200">
-          <div>
-            <label htmlFor="jobRole" className="block mb-2 font-medium text-gray-700">Select Job Role:</label>
-            <select
-              id="jobRole"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-            >
-              <option value="">Select a job role</option>
-              {jobRoles.map((role) => (
-                <option key={role.id} value={role.title}>
-                  {role.title}
-                </option>
-              ))}
-            </select>
-          </div>
+      {loading && <p className="text-center text-gray-500">Loading jobs...</p>}
+      {error && <p className="text-center text-red-500">{error}</p>}
 
-          <div>
-            <label htmlFor="experience" className="block mb-2 font-medium text-gray-700">Years of Experience:</label>
-            <input
-              type="number"
-              id="experience"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-              value={experience}
-              onChange={(e) => setExperience(e.target.value)}
-              placeholder="e.g., 2"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="location" className="block mb-2 font-medium text-gray-700">Location:</label>
-            <input
-              type="text"
-              id="location"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g., New York, CA"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="technologies" className="block mb-2 font-medium text-gray-700">Technologies:</label>
-            <input
-              type="text"
-              id="technologies"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-              value={technologies}
-              onChange={(e) => setTechnologies(e.target.value)}
-              placeholder="e.g., React, Node.js"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="companyType" className="block mb-2 font-medium text-gray-700">Company Type:</label>
-            <input
-              type="text"
-              id="companyType"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-              value={companyType}
-              onChange={(e) => setCompanyType(e.target.value)}
-              placeholder="e.g., Startup, Corporation"
-            />
-          </div>
-
-          <button
-            className="w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition duration-200"
-            onClick={handleGetRecommendations}
-          >
-            Get Recommendations
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-8 bg-white p-8 rounded-lg shadow-lg max-w-6xl mx-auto border border-gray-200">
-          <button
-            className="w-10.5 bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition duration-200"
-            onClick={handleBack}
-          >
-            &larr; Back
-          </button>
-
-          <h2 className="text-4xl font-semibold text-blue-700">Job Recommendations</h2>
-          <ul className="space-y-6">
-            {recommendations.status === "success" ? (
-              recommendations.data.map((rec, index) => (
-                <RecommendationItem key={index} title={rec.title} description={rec.description} link={rec.link} />
-              ))
-            ) : (
-              <li className="text-center text-gray-500">{recommendations.error || "No job recommendations found."}</li>
-            )}
-          </ul>
-        </div>
-      )}
+      <div className="space-y-8">
+        {jobs.length > 0 ? (
+          jobs.map((job, index) => {
+            const applyLink = job.apply_link || null;
+            return (
+              <div key={index} className="p-5 bg-gray-50 border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+                <h3 className="text-2xl font-semibold text-gray-800 mb-2">{job.title}</h3>
+                <p className="text-gray-700 text-lg">
+                  Company: <span className="font-medium text-gray-800">{job.company}</span>
+                </p>
+                <p className="text-gray-700 text-lg">
+                  Location: <span className="font-medium text-gray-800">{job.location}</span>
+                </p>
+                <a
+                  href={`https://www.linkedin.com/jobs/search?keywords=${encodeURIComponent(job.company)}&${encodeURIComponent(job.title)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 font-semibold hover:text-blue-700 transition-colors duration-200 mt-4 inline-block"
+                >
+                  Apply
+                </a>
+              </div>
+            );
+          })
+        ) : (
+          !loading && <p className="text-center text-gray-500">No jobs found. Try adjusting your search criteria.</p>
+        )}
+      </div>
     </div>
   );
 };
 
-export default JobRecommendations;
+export default JobRecommendation;

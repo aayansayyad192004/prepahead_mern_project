@@ -116,45 +116,44 @@ export default function Profile() {
     console.log('Current User ID:', currentUser._id);
 
     if (!currentUser || !currentUser._id) {
-        console.error('No current user found');
-        setErrorMessage('User not found.');
-        return;
+      console.error('No current user found');
+      setErrorMessage('User not found.');
+      return;
     }
 
     const updatedData = { ...formData, resumeURL };
 
     try {
-        dispatch(updateUserStart());
-        const res = await fetch(`/api/user/update/${currentUser._id}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updatedData),
-        });
+      dispatch(updateUserStart());
+      const res = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+      });
 
-        if (!res.ok) {
-            const errorData = await res.json();
-            console.error('Response error status:', res.status, errorData);
-            dispatch(updateUserFailure(errorData));
-            setErrorMessage(errorData.message || 'Failed to update profile.');
-            return;
-        }
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('Response error status:', res.status, errorData);
+        dispatch(updateUserFailure(errorData));
+        setErrorMessage(errorData.message || 'Failed to update profile.');
+        return;
+      }
 
-        const data = await res.json();
-        console.log('Response Data:', data);
+      const data = await res.json();
+      console.log('Response Data:', data);
 
-        dispatch(updateUserSuccess(data));
-        setUpdateSuccess(true);
-        setFormData({}); // Reset form data if needed
-        dispatch(fetchUser(currentUser._id)); // Fetch updated user data
+      dispatch(updateUserSuccess(data));
+      setUpdateSuccess(true);
+      setFormData({}); // Reset form data if needed
     } catch (error) {
-        console.error('Update error:', error.message);
-        dispatch(updateUserFailure(error));
-        setErrorMessage('An error occurred while updating the profile.');
+      console.error('Update error:', error.message);
+      dispatch(updateUserFailure(error));
+      setErrorMessage('An error occurred while updating the profile.');
     }
-};
-
+  };
+  
 const handleDeleteAccount = async () => {
   try {
     dispatch(deleteUserStart());

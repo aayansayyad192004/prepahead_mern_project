@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import jsPDF from "jspdf";
@@ -37,7 +38,7 @@ const Roadmap = () => {
           topP: 0.95,
           topK: 40,
           maxOutputTokens: 8192,
-          responseMimeType: "text/plain",
+         
         },
         history: [
           {

@@ -69,7 +69,7 @@ const MockInterviewPage = () => {
             topP: 0.95,
             topK: 40,
             maxOutputTokens: 8192,
-            responseMimeType: "text/plain",
+            
           },
           history: [
             {
@@ -189,20 +189,21 @@ const MockInterviewPage = () => {
 };
 
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      recognition.start();
+const stopRecording = () => {
+  if (mediaRecorderRef.current && isRecording) {
+    mediaRecorderRef.current.stop();
+    setIsRecording(false);
+    recognition.start();
 
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-      } else {
-        calculateScore();
-        setShowResults(true);
-      }
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      calculateScore();
+      setShowResults(true);
     }
-  };
+  }
+};
+
 
   const calculateSimilarity = (text1, text2) => {
     if (!text1 || !text2) return 0; // Handle empty cases
