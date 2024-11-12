@@ -18,14 +18,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, '/client/dist')));
 
+// Correct static file serving path
+console.log('Serving static files from:', path.join(__dirname, 'client', 'dist'));
+app.use(express.static(path.join(__dirname, 'client', 'dist')));
+
+// Serve the index.html for any route
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
 });
 
-
-
+// Jobs API
 app.get('/api/jobs', async (req, res) => {
   const { search, location, country } = req.query;
 
@@ -58,12 +61,11 @@ app.get('/api/jobs', async (req, res) => {
   }
 });
 
-
-
+// Routes
 app.use('/api/user', userRoutes);
-
 app.use('/api/auth', authRoutes);
 
+// Error handling
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
