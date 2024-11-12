@@ -43,7 +43,6 @@ export default function About() {
               </p>
             </div>
           </div>
-
           <div className='flex items-start space-x-4'>
             <div className='bg-blue-100 p-3 rounded-full'>
               {/* Placeholder for mentorship */}
