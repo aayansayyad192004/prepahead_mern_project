@@ -9,32 +9,28 @@ import axios from 'axios';
 import cors from 'cors';
 
 dotenv.config();
-mongoose.connect(process.env.MONGO_URI).then(() => console.log('Connected to MongoDB'))
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('Error connecting to MongoDB:', err));
 
 const __dirname = path.resolve();
 const app = express();
 
+// Use CORS and other middleware
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+app.use(express.static(path.join(__dirname, '/client/dist')));
 
-// Correct static file serving path
-console.log('Serving static files from:', path.join(__dirname, 'client', 'dist'));
-app.use(express.static(path.join(__dirname, 'client', 'dist')));
-
-// Serve the index.html for any route
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
-});
-
-// Jobs API
+// API to fetch job listings using SerpAPI
 app.get('/api/jobs', async (req, res) => {
   const { search, location, country } = req.query;
 
   try {
     const response = await axios.get(
-      `https://serpapi.com/search.json`, 
+      `https://serpapi.com/search.json`,
       {
         params: {
           engine: "google_jobs",
@@ -61,11 +57,16 @@ app.get('/api/jobs', async (req, res) => {
   }
 });
 
-// Routes
+// Use routes for user and authentication
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 
-// Error handling
+// Serve the React app for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
+});
+
+// Error handling middleware
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
@@ -74,6 +75,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Get the port from environment variable or default to 3000
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
