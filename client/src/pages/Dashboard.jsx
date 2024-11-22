@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaChartLine, FaCode, FaMoneyBillWave, FaRobot, FaCamera, FaBookOpen, FaBriefcase } from 'react-icons/fa';
+import { FaUser, FaChartLine, FaCode, FaMoneyBillWave, FaRobot, FaCamera, FaBookOpen, FaBriefcase, FaUserFriends } from 'react-icons/fa';
 import { AiOutlineUpload } from 'react-icons/ai';
 import { SiGithub, SiLeetcode } from 'react-icons/si';
 import { useNavigate } from 'react-router-dom';
@@ -112,16 +112,23 @@ const Dashboard = () => {
 
   const renderMentorship = () => (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Pay-to-Talk Mentorship</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[1, 2, 3].map((mentor) => (
-          <div key={mentor} className="bg-gray-100 p-4 rounded-lg">
-            <img src={`https://randomuser.me/api/portraits/men/${mentor + 60}.jpg`} alt={`Mentor ${mentor}`} className="w-24 h-24 rounded-full mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2 text-center">John Doe {mentor}</h3>
-            <p className="text-gray-600 mb-4 text-center">Senior Software Engineer at Tech Giant</p>
-            <button className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">Book Session (₹999/hr)</button>
-          </div>
-        ))}
+      <h2 className="text-2xl font-bold mb-4">Mentorship Section</h2>
+      <div className="bg-gray-100 p-4 rounded-lg mb-6">
+        <h3 className="text-xl font-semibold mb-2">Connect with Mentors</h3>
+        <p className="text-gray-600 mb-4">Gain valuable insights and guidance by connecting with experienced mentors in your field.</p>
+        <button onClick={() => navigate('/MentorshipPage')} // Navigate to MockInterviewPage
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center">
+          <FaUserFriends className="mr-2" /> Explore Mentors
+        </button>
+      </div>
+      <div className="bg-gray-100 p-4 rounded-lg">
+        <h3 className="text-xl font-semibold mb-2">Mentorship Tips for Students</h3>
+        <ul className="list-disc list-inside text-gray-600">
+        <li>Identify your goals and expectations before mentoring sessions.</li>
+        <li>Be open to constructive feedback and apply it proactively.</li>
+        <li>Ask specific questions to make the most of the mentorship experience.</li>
+        <li>Maintain regular communication and build a lasting relationship.</li>
+        </ul>
       </div>
     </div>
   );
@@ -239,7 +246,7 @@ const Dashboard = () => {
      
       case 'assessment':
         return renderSkillAssessment();
-      case 'mentorship':
+      case 'mentorshippage':
         return renderMentorship();
       case 'interview':
         return renderAIInterview();
@@ -266,7 +273,7 @@ const Dashboard = () => {
               { id: 'dashboard', icon: <FaChartLine />, label: 'Dashboard' },
              
               { id: 'assessment', icon: <FaCode />, label: 'Skill Assessment' },
-              { id: 'mentorship', icon: <FaMoneyBillWave />, label: 'Mentorship' },
+              { id: 'mentorshippage', icon: <FaMoneyBillWave />, label: 'Mentorship' },
               { id: 'interview', icon: <FaRobot />, label: 'AI Interview' },
               { id: 'jobrecommendation', icon: <FaBriefcase />, label: 'Apply to Jobs' },
               { id: 'courserecommendation', icon: <FaBookOpen />, label: 'Courses' },

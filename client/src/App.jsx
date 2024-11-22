@@ -12,6 +12,7 @@ import SkillAssessment from './pages/SkillAssessment';
 import JobRecommendation from './pages/JobRecommendation';
 import CourseRecommendation from './pages/CourseRecommendation';
 import Roadmap from './pages/Roadmap';
+import MentorshipPage from './pages/MentorshipPage';
 export default function App() {
   return (
     <BrowserRouter>
@@ -27,6 +28,7 @@ export default function App() {
         </Route>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/mock-interview" element={<MockInterviewPage />} />
+        <Route path="/MentorshipPage" element={<MentorshipPage />} />
         <Route path="/SkillAssessment" element={<SkillAssessment />} />
         <Route path="/JobRecommendation" element={<JobRecommendation />} />
         <Route path="/CourseRecommendation" element={<CourseRecommendation />} />

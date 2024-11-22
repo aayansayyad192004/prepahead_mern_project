@@ -61,8 +61,10 @@ export default function Profile() {
       'state_changed',
       (snapshot) => {
         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setPercent(Math.round(progress));
+        fieldName === 'profilePicture' ? setImagePercent(progress) : setResumePercent(progress);
       },
+      
+      
       (error) => {
         console.error('Upload error:', error);
         setError(true);
@@ -70,6 +72,7 @@ export default function Profile() {
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           setFormData((prevData) => ({ ...prevData, [fieldName]: downloadURL }));
+          
           if (fieldName === 'resumeURL') {
             setResumeURL(downloadURL);
           }
@@ -83,15 +86,6 @@ export default function Profile() {
     setFormData((prevData) => ({ ...prevData, [e.target.id]: e.target.value }));
   };
 
-  const handleNicheChange = (e) => {
-    if (e.target.tagName === 'SELECT') {
-      const options = Array.from(e.target.selectedOptions, (option) => option.value);
-      if (options.length <= 3) {
-        setSelectedNiches(options);
-        setFormData((prevData) => ({ ...prevData, jobNiches: options }));
-      }
-    }
-  };
   
   const fetchUser = async () => {
     try {
@@ -121,7 +115,8 @@ export default function Profile() {
       return;
     }
 
-    const updatedData = { ...formData, resumeURL };
+    const updatedData = { ...formData,  profilePicture: formData.profilePicture || currentUser.profilePicture,
+      resumeURL: formData.resumeURL || currentUser.resumeURL, };
 
     try {
       dispatch(updateUserStart());
@@ -179,23 +174,14 @@ const handleDeleteAccount = async () => {
     }
   };
 
-  const jobNiches = [
-    'Web Development', 'Frontend Developer', 'Backend Developer',
-    'Full Stack Web Developer', 'MERN Stack Developer', 'Cybersecurity',
-    'Data Science', 'Artificial Intelligence', 'Cloud Computing', 'DevOps',
-    'Mobile App Development', 'Blockchain', 'Database Administration',
-    'Network Administration', 'UI/UX Design', 'Game Development',
-    'IoT (Internet of Things)', 'Big Data', 'Machine Learning',
-    'IT Project Management', 'IT Support and Helpdesk',
-    'Systems Administration', 'IT Consulting'
-  ];
+  
 
   if (!currentUser) return <p>Loading...</p>;
 
   return (
-    <div className='p-6 max-w-xl mx-auto bg-white shadow-lg rounded-md'>
+    <div className='p-6 max-w-xl mx-auto  bg-white shadow-lg rounded-md'>
       <h1 className='text-3xl font-bold text-center my-5 text-gray-800'>Profile</h1>
-      <form onSubmit={handleSubmit} className='space-y-6'>
+      <form onSubmit={handleSubmit} className='space-y-6 mx-8 '>
         {errorMessage && <p className='text-red-600 text-center'>{errorMessage}</p>}
 
         <input
@@ -220,63 +206,247 @@ const handleDeleteAccount = async () => {
             <span className='text-green-700'>Image uploaded successfully</span>
           ) : ''}
         </p>
+    <div>
+    <label htmlFor='username' className='block text-gray-700 font-medium'>
+      User Name
+    </label>
+    <input
+      defaultValue={currentUser.username}
+      type='text'
+      id='username'
+      placeholder='User Name'
+      className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+      onChange={handleChange}
+    />
+  </div>
 
+  {/* Full Name */}
+  <div>
+    <label htmlFor='name' className='block text-gray-700 font-medium'>
+      Full Name
+    </label>
+    <input
+      defaultValue={currentUser.name}
+      type='text'
+      id='name'
+      placeholder='Full Name'
+      className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+      onChange={handleChange}
+    />
+  </div>
+
+  {/* Email Address */}
+  <div>
+    <label htmlFor='email' className='block text-gray-700 font-medium'>
+      Email Address
+    </label>
+    <input
+      defaultValue={currentUser.email}
+      type='email'
+      id='email'
+      placeholder='Email Address'
+      className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+      onChange={handleChange}
+      required
+    />
+  </div>
+
+  {/* Password */}
+  <div>
+    <label htmlFor='password' className='block text-gray-700 font-medium'>
+      Password
+    </label>
+    <input
+      type='password'
+      id='password'
+      placeholder='Password'
+       className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+      defaultValue={currentUser.password} // Use defaultValue to set the initial value
+      onChange={handleChange} // This will handle any changes if needed
+    />
+  </div>
+
+  {/* Phone Number */}
+  <div>
+    <label htmlFor='phone' className='block text-gray-700 font-medium'>
+      Phone Number
+    </label>
+    <input
+      defaultValue={currentUser.phone}
+      type='tel'
+      id='phone'
+      placeholder='Phone Number'
+      className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+      onChange={handleChange}
+      required
+    />
+  </div>
+
+  {/* Address */}
+  <div>
+    <label htmlFor='address' className='block text-gray-700 font-medium'>
+      Address
+    </label>
+    <input
+      defaultValue={currentUser.address}
+      type='text'
+      id='address'
+      placeholder='Address'
+      className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+      onChange={handleChange}
+    />
+  </div>
+
+  {/* Conditional Fields for Mentor */}
+  {currentUser.role === 'mentor' ? (
+    <>
+      <div>
+        <label htmlFor='expertiseAreas' className='block text-gray-700 font-medium'>
+          Expertise Areas
+        </label>
         <input
-          defaultValue={currentUser.username}
+          defaultValue={currentUser.expertiseAreas}
           type='text'
-          id='username'
-          placeholder='Full Name'
+          id='expertiseAreas'
+          placeholder='Expertise Areas (e.g., Web Development, Data Science)'
+           className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+          onChange={handleChange}
+        />
+      </div>
+
+      <div>
+        <label htmlFor='experienceLevel' className='block text-gray-700 font-medium'>
+          Experience Level
+        </label>
+        <input
+          defaultValue={currentUser.experienceLevel}
+          type='text'
+          id='experienceLevel'
+          placeholder='Experience Level (e.g., 5 years)'
+           className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+          onChange={handleChange}
+        />
+      </div>
+
+      <div>
+        <label htmlFor='availability' className='block text-gray-700 font-medium'>
+          Mentorship Availability
+        </label>
+        <input
+          defaultValue={currentUser.availability}
+          type='text'
+          id='availability'
+          placeholder='Mentorship Availability (e.g., Weekends)'
+           className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+          onChange={handleChange}
+        />
+      </div>
+
+      <div>
+        <label htmlFor='linkedin' className='block text-gray-700 font-medium'>
+          LinkedIn Profile URL
+        </label>
+        <input
+          defaultValue={currentUser.linkedin}
+          type='url'
+          id='linkedin'
+          placeholder='LinkedIn Profile URL'
           className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
           onChange={handleChange}
+        />
+      </div>
+
+      <div>
+        <label htmlFor='mentorBio' className='block text-gray-700 font-medium'>
+          Mentor Bio
+        </label>
+        <textarea
+          defaultValue={currentUser.mentorBio}
+          id='mentorBio'
+          placeholder='Brief Bio'
+          className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+          onChange={handleChange}
+        />
+      </div>
+
+      <div>
+        <label htmlFor='hourlyRate' className='block text-gray-700 font-medium'>
+          Hourly Rate (if applicable)
+        </label>
+        <input
+          defaultValue={currentUser.hourlyRate}
+          type='number'
+          id='hourlyRate'
+          placeholder='Hourly Rate'
+           className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+          onChange={handleChange}
+        />
+      </div>
+
+      <div>
+        <label htmlFor='companyName' className='block text-gray-700 font-medium'>
+          Company Name
+        </label>
+        <input
+          defaultValue={currentUser.companyName}
+          type='text'
+          id='companyName'
+          placeholder='Company Name'
+           className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+          onChange={handleChange}
+        />
+      </div>
+    </>
+  ) : (
+    <>
+      <div>
+        <label htmlFor='jobNiche1' className='block text-gray-700 font-medium'>
+          Job Niche 1
+        </label>
+        <input
+          defaultValue={currentUser.jobNiche1}
+          type='text'
+          id='jobNiche1'
+          placeholder='Job Niche 1'
+           className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+          onChange={handleChange}
+        />
+      </div>
+
+      <div>
+        <label htmlFor='jobNiche2' className='block text-gray-700 font-medium'>
+          Job Niche 2
+        </label>
+        <input
+          defaultValue={currentUser.jobNiche2}
+          type='text'
+          id='jobNiche2'
+          placeholder='Job Niche 2'
+           className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+          onChange={handleChange}
+        />
+      </div>
+
+      <div>
+        <label htmlFor='jobNiche3' className='block text-gray-700 font-medium'>
+          Job Niche 3
+        </label>
+        <input
+          defaultValue={currentUser.jobNiche3}
+          type='text'
+          id='jobNiche3'
+          placeholder='Job Niche 3'
+           className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
+          onChange={handleChange}
+        />
+      </div>
+      {/* Resume */}
+  <div>
+    <label htmlFor='resume' className='block text-gray-700 font-medium'>
+      Resume
+    </label>
+     <input
           
-        />
-
-        <input
-          defaultValue={currentUser.email}
-          type='email'
-          id='email'
-          placeholder='Email Address'
-          className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
-          onChange={handleChange}
-          required
-        />
-
-        <input
-          defaultValue={currentUser.phoneNumber}
-          type='text'
-          id='phoneNumber'
-          placeholder='Phone Number'
-          className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
-          onChange={handleChange}
-          required
-        />
-
-        <input
-          defaultValue={currentUser.address}
-          type='text'
-          id='address'
-          placeholder='Address'
-          className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
-          onChange={handleChange}
-        />
-
-        <label className='font-semibold mb-2 block text-gray-700'>Select up to 3 Job Niches:</label>
-        <p className='text-sm text-gray-500'>
-          (Hold down the Ctrl (Windows) or Command (Mac) button to select multiple options.)
-        </p>
-        <select
-          multiple
-          className='w-full bg-gray-100 rounded-lg p-3 border border-gray-200'
-          onChange={handleNicheChange}
-        >
-          {jobNiches.map((niche, index) => (
-            <option key={index} value={niche}>
-              {niche}
-            </option>
-          ))}
-        </select>
-
-        <input
           type='file'
           ref={resumeRef}
           hidden
@@ -284,7 +454,7 @@ const handleDeleteAccount = async () => {
           onChange={(e) => setResume(e.target.files[0])}
         />
         <p
-          className='text-center text-blue-700 cursor-pointer underline'
+          className='block text-center text-blue-600  font-semibold hover:text-blue-700 mt-4 mb-4 transition-all duration-300 ease-in-out transform hover:scale-105'
           onClick={() => resumeRef.current.click()}
         >
           {resumeURL ? 'Replace Resume' : 'Upload Resume'}
@@ -299,16 +469,25 @@ const handleDeleteAccount = async () => {
         {resumeURL && (
           <p className='text-center'>
             <a
+              defaultValue={currentUser.resumeURL}
               href={resumeURL}
               target='_blank'
               rel='noopener noreferrer'
-              className='text-blue-500 hover:underline'
+              className='block text-center text-teal-600 font-semibold hover:text-teal-700 mb-4 transition-all duration-300 ease-in-out transform hover:scale-105'
             >
               View Uploaded Resume
             </a>
           </p>
         )}
+  </div>
 
+    </>
+  )}
+
+  
+
+
+       
         {updateSuccess && <p className='text-center text-green-700'>Profile updated successfully!</p>}
 
         <button
