@@ -5,18 +5,31 @@ import jwt from 'jsonwebtoken';
 
 export const signup = async (req, res, next) => {
   // Destructure all the necessary fields from the request body
-  const { username, email, password, phone, address } = req.body;
+  const { name, username, email, password, phone, address, role, jobNiche1, jobNiche2, jobNiche3, expertiseAreas, experienceLevel, availability, linkedin, mentorBio, hourlyRate, companyName , resumeURL} = req.body;
 
   // Hash the password using bcryptjs
   const hashedPassword = bcryptjs.hashSync(password, 10);
 
-  // Create a new user with the additional phone and address fields
+  // Create a new user
   const newUser = new User({
+    name,
     username,
     email,
     password: hashedPassword,
-    phone,  // Add phone field
-    address // Add address field
+    phone,
+    address,
+    role, // Set the role ('student' or 'mentor')
+    jobNiche1,
+    jobNiche2,
+    jobNiche3,
+    expertiseAreas, // Mentor-specific fields
+    experienceLevel,
+    availability,
+    linkedin,
+    mentorBio,
+    hourlyRate,
+    companyName,
+    resumeURL
   });
 
   try {
@@ -91,6 +104,7 @@ export const google = async (req, res, next) => {
         email: req.body.email,
         password: hashedPassword,
         profilePicture: req.body.photo,
+        resumeURL: req.body.resumeURL,
       });
 
       // Save the new user to the database

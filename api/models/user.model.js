@@ -2,11 +2,17 @@ import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema(
   {
+    
+    name: { 
+      type: String, 
+      required: true, 
+    },
     username: { 
       type: String, 
       required: true, 
       unique: true,
     },
+    
     email: { 
       type: String, 
       required: true, 
@@ -30,13 +36,43 @@ const UserSchema = new mongoose.Schema(
     role: { 
       type: String, 
       required: true, 
-      enum: ['student', 'Mentor'], // Only allows 'student' or 'Mentor' roles
+      enum: ['student', 'mentor'], // Only allows 'student' or 'Mentor' roles
       default: 'student', // Sets 'student' as the default role
     },
-    niches: {
-      firstNiche: { type: String }, 
-      secondNiche: { type: String },
-      thirdNiche: { type: String },
+    jobNiche1: { type: String},
+    jobNiche2: { type: String },
+    jobNiche3: { type: String},
+    expertiseAreas: {
+      type: String,
+      required: function() { return this.role === 'mentor'; }, // Required for mentors
+    },
+    experienceLevel: {
+      type: String,
+      required: function() { return this.role === 'mentor'; }, // Required for mentors
+    },
+    availability: {
+      type: String,
+      required: function() { return this.role === 'mentor'; }, // Required for mentors
+    },
+    linkedin: {
+      type: String,
+      required: function() { return this.role === 'mentor'; }, // Required for mentors
+    },
+    mentorBio: {
+      type: String,
+      required: function() { return this.role === 'mentor'; }, // Required for mentors
+    },
+    hourlyRate: {
+      type: Number,
+      required: function() { return this.role === 'mentor'; }, // Optional but could be required based on logic
+    },
+    companyName: {
+      type: String,
+      required: function() { return this.role === 'mentor'; }, // Required for mentors
+    },
+    resumeURL: { 
+      type: String, 
+      // Default can be an empty string or null, depending on whether you want to allow users without a resume
     },
   },
   { timestamps: true }

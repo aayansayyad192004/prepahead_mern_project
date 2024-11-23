@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRoutes from './routes/user.route.js';
 import authRoutes from './routes/auth.route.js';
+import mentorRoutes from './routes/mentor.route.js';  // Import the mentor routes
+
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import axios from 'axios';
@@ -61,6 +63,7 @@ app.get('/api/jobs', async (req, res) => {
 app.use('/api/user', userRoutes);
 
 app.use('/api/auth', authRoutes);
+app.use('/api/mentors', mentorRoutes); 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
 });
