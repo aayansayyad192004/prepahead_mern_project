@@ -26,64 +26,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '/client/dist')));
 
-// Razorpay instance for creating orders
-const razorpayInstance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
-console.log(process.env.RAZORPAY_KEY_ID);
 
-// Route to create Razorpay order
-app.post('/api/create-order', async (req, res) => {
-  const { amount, currency } = req.body;
-
-  try {
-    // Create the Razorpay order
-    const options = {
-      amount: amount * 100, // Convert to paise (1 INR = 100 paise)
-      currency: currency || 'INR',  // Default currency is INR
-      receipt: 'receipt#1',
-      notes: {
-        key1: 'value1',
-        key2: 'value2',
-      },
-    };
-
-    const order = await razorpayInstance.orders.create(options);
-
-    // Send the created order details to the client
-    res.json({
-      id: order.id,
-      currency: order.currency,
-      amount: order.amount,
-    });
-  } catch (error) {
-    console.error('Error creating order:', error);
-    res.status(500).json({ message: 'Error creating order', error: error.message });
-  }
-});
-
-// Example route to handle payment success (after user completes payment)
-app.post('/api/payment-success', (req, res) => {
-  const paymentDetails = req.body; // Contains the payment data received from Razorpay
-  
-  // You can implement your logic to handle the successful payment here, e.g., storing it in the database
-  console.log('Payment Success:', paymentDetails);
-
-  // Respond with success
-  res.json({ message: 'Payment successful', paymentDetails });
-});
-
-// Example route for handling payment failure (if something goes wrong with the payment)
-app.post('/api/payment-failure', (req, res) => {
-  const paymentDetails = req.body; // Contains the payment failure data
-
-  // Log or handle payment failure here
-  console.log('Payment Failure:', paymentDetails);
-
-  // Respond with failure message
-  res.json({ message: 'Payment failed', paymentDetails });
-});
 
 // Job search route
 app.get('/api/jobs', async (req, res) => {

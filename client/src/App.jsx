@@ -32,9 +32,9 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/mock-interview" element={<MockInterviewPage />} />
-          <Route path="/skill-assessment" element={<SkillAssessment />} />
-          <Route path="/job-recommendation" element={<JobRecommendation />} />
-          <Route path="/course-recommendation" element={<CourseRecommendation />} />
+          <Route path="/skillassessment" element={<SkillAssessment />} />
+          <Route path="/jobrecommendation" element={<JobRecommendation />} />
+          <Route path="/courserecommendation" element={<CourseRecommendation />} />
           <Route path="/roadmap" element={<Roadmap />} />
         </Route>
 
