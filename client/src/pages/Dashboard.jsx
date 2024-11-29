@@ -116,7 +116,7 @@ const Dashboard = () => {
       <div className="bg-gray-100 p-4 rounded-lg mb-6">
         <h3 className="text-xl font-semibold mb-2">Connect with Mentors</h3>
         <p className="text-gray-600 mb-4">Gain valuable insights and guidance by connecting with experienced mentors in your field.</p>
-        <button onClick={() => navigate('/MentorshipPage')} // Navigate to MockInterviewPage
+        <button onClick={() => navigate('/mentorshipPage')} // Navigate to MockInterviewPage
         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center">
           <FaUserFriends className="mr-2" /> Explore Mentors
         </button>

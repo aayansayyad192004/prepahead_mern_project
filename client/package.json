@@ -16,6 +16,7 @@
     "font-awesome": "^4.7.0",
     "framer-motion": "^11.5.6",
     "mern-auth": "file:..",
+    "razorpay": "^2.9.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.3.0",

@@ -2,15 +2,33 @@ import React, { useState, useEffect } from 'react';
 
 const MentorshipPage = () => {
   const [mentors, setMentors] = useState([]);
-  const [selectedField, setSelectedField] = useState('Frontend Developer');
+  const [selectedField, setSelectedField] = useState();
+  const [fields, setFields] = useState([]);
 
   // Fetch mentors when component mounts
   useEffect(() => {
     const fetchMentors = async () => {
       try {
-        const response = await fetch('/api/mentors'); // Assuming this is the correct route
+        const response = await fetch('/api/mentors'); // Ensure this endpoint is correct
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
         const data = await response.json();
-        setMentors(data);
+
+        // Check if data is valid and process it
+        if (Array.isArray(data)) {
+          setMentors(data);
+
+          // Extract unique expertise areas
+          const uniqueFields = Array.from(
+            new Set(
+              data.flatMap((mentor) => mentor.expertiseAreas || []) // Flatten and remove duplicates
+            )
+          );
+          setFields(uniqueFields);  // Set the fields dynamically
+        } else {
+          console.error('API response is not an array:', data);
+        }
       } catch (error) {
         console.error('Error fetching mentors:', error);
       }
@@ -19,11 +37,13 @@ const MentorshipPage = () => {
     fetchMentors();
   }, []);
 
-  // Filter mentors by expertise
-  const filteredMentors = mentors.filter(
-    (mentor) => mentor.expertiseAreas === selectedField
-  );
-
+  // Filter mentors by selected field
+  const filteredMentors = selectedField
+    ? mentors.filter((mentor) =>
+        mentor.expertiseAreas && mentor.expertiseAreas.includes(selectedField)
+      )
+    : mentors;
+  
   return (
     <div className="min-h-screen bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white p-6">
       {/* Page Header */}
@@ -33,20 +53,25 @@ const MentorshipPage = () => {
 
       {/* Field Selector */}
       <div className="flex justify-center flex-wrap gap-4 mb-10">
-        {['Frontend Developer', 'Backend Developer', '.NET', 'AI/ML Expert'].map((field) => (
-          <button
-            key={field}
-            className={`px-6 py-3 rounded-lg text-sm font-medium shadow-lg transition-all duration-300 ${
-              selectedField === field
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
-            onClick={() => setSelectedField(field)}
-          >
-            {field}
-          </button>
-        ))}
-      </div>
+  {fields.length > 0 ? (
+    fields.map((field) => (
+      <button
+        key={field}
+        className={`px-6 py-3 rounded-lg text-sm font-medium shadow-lg transition-all duration-300 ${
+          selectedField === field
+            ? 'bg-blue-600 text-white hover:bg-blue-700'
+            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+        }`}
+        onClick={() => setSelectedField(field)}
+      >
+        {field}
+      </button>
+    ))
+  ) : (
+    <p className="text-gray-400 text-center">Loading expertise fields...</p>
+  )}
+</div>
+
 
       {/* Mentor Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -66,30 +91,48 @@ const MentorshipPage = () => {
               <h2 className="text-2xl font-bold text-center mb-3 text-white">
                 {mentor.name}
               </h2>
-              <div className="w-full border-t border-gray-600 my-3"></div>
-              {/* Expertise and Details */}
-              <div className="text-center text-sm text-gray-400 space-y-2">
-                <p>
-                  <span className="font-semibold text-gray-300">Expertise:</span> {mentor.expertiseAreas}
-                </p>
-                <p>
-                  <span className="font-semibold text-gray-300">Experience:</span> {mentor.experienceLevel}
-                </p>
-                <p>
-                  <span className="font-semibold text-gray-300">Company:</span> {mentor.companyName}
-                </p>
-                <p>
-                  <span className="font-semibold text-gray-300">Availability:</span> {mentor.availability}
-                </p>
-                <a
-                  href={mentor.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-400 hover:underline"
-                >
-                  View LinkedIn Profile
-                </a>
-              </div>
+              <div className="w-full border-t border-gray-600 my-6"></div>
+{/* Expertise and Details */}
+<div className="space-y-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-400 text-sm">
+    {/* Expertise */}
+    <div className="flex items-center">
+      <span className="font-bold text-gray-300 w-1/3 mr-4">Expertise:</span>
+      <span className="text-gray-400">{mentor.expertiseAreas}</span>
+    </div>
+    
+    {/* Experience */}
+    <div className="flex items-center">
+      <span className="font-bold text-gray-300 w-1/3 mr-6">Experience:</span>
+      <span className="text-gray-400">{mentor.experienceLevel}</span>
+    </div>
+
+    {/* Company */}
+    <div className="flex items-center">
+      <span className="font-bold text-gray-300 w-1/3 mr-4">Company:</span>
+      <span className="text-gray-400">{mentor.companyName}</span>
+    </div>
+
+    {/* Availability */}
+    <div className="flex items-center">
+      <span className="font-bold text-gray-300 w-1/3 mr-6">Availability:</span>
+      <span className="text-gray-400">{mentor.availability}</span>
+    </div>
+  </div>
+
+  {/* LinkedIn Profile */}
+  <div className="flex justify-center">
+    <a
+      href={mentor.linkedin}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-500 hover:text-blue-400 font-semibold underline transition duration-200 ease-in-out"
+    >
+      View LinkedIn Profile
+    </a>
+  </div>
+</div>
+
               <div className="w-full border-t border-gray-600 my-3"></div>
               {/* Mentor Bio */}
               <p className="text-center text-gray-300 italic text-sm mb-4">
@@ -97,7 +140,7 @@ const MentorshipPage = () => {
               </p>
               {/* Rating */}
               <div className="text-yellow-500 font-semibold text-lg mb-4">
-                ⭐ {mentor.rating} 
+              ⭐⭐⭐⭐ {mentor.rating} 
               </div>
               {/* Book Session Button */}
               <button

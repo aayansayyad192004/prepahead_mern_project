@@ -13,27 +13,34 @@ import JobRecommendation from './pages/JobRecommendation';
 import CourseRecommendation from './pages/CourseRecommendation';
 import Roadmap from './pages/Roadmap';
 import MentorshipPage from './pages/MentorshipPage';
+import SubscriptionPage from './pages/SubscriptionPage';
+
 export default function App() {
   return (
     <BrowserRouter>
-      {/* header */}
+      {/* Header Component */}
       <Header />
       <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/about' element={<About />} />
-        <Route path='/sign-in' element={<SignIn />} />
-        <Route path='/sign-up' element={<SignUp />} />
-        <Route element={<PrivateRoute />}>
-          <Route path='/profile' element={<Profile />} />
-        </Route>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/mock-interview" element={<MockInterviewPage />} />
-        <Route path="/MentorshipPage" element={<MentorshipPage />} />
-        <Route path="/SkillAssessment" element={<SkillAssessment />} />
-        <Route path="/JobRecommendation" element={<JobRecommendation />} />
-        <Route path="/CourseRecommendation" element={<CourseRecommendation />} />
-        <Route path="/roadmap" element={<Roadmap />} />
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/sign-in" element={<SignIn />} />
+        <Route path="/sign-up" element={<SignUp />} />
 
+        {/* Protected Routes */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/mock-interview" element={<MockInterviewPage />} />
+          <Route path="/skill-assessment" element={<SkillAssessment />} />
+          <Route path="/job-recommendation" element={<JobRecommendation />} />
+          <Route path="/course-recommendation" element={<CourseRecommendation />} />
+          <Route path="/roadmap" element={<Roadmap />} />
+        </Route>
+
+        {/* Subscription and Mentorship Routes */}
+        <Route path="/subscription" element={<SubscriptionPage />} />
+        <Route path="/mentorshippage" element={<MentorshipPage />} />
       </Routes>
     </BrowserRouter>
   );

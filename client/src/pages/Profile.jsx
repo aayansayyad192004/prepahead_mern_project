@@ -29,7 +29,7 @@ export default function Profile() {
   const [imageError, setImageError] = useState(false);
   const [resumeError, setResumeError] = useState(false);
   const [formData, setFormData] = useState({});
-  const [selectedNiches, setSelectedNiches] = useState([]);
+  
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [resumeURL, setResumeURL] = useState('');
