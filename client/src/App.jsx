@@ -16,8 +16,10 @@ import Roadmap from './pages/Roadmap';
 import MentorshipPage from './pages/MentorshipPage';
 import PaymentPage from "./pages/PaymentPage"; // Correct import for PaymentPage
 import OverallDashboard from './pages/OverallDashboard';
-
-export default function App() {
+import ConnectNow from './pages/ConnectNow';
+import StudentVideoCall from './pages/StudentVideoCall';
+import StudentChatApp from './pages/StudentChatApp';
+import MentorChatApp from './pages/MentorChatApp'; export default function App() {
   return (
     <BrowserRouter>
       {/* Header Component */}
@@ -42,10 +44,15 @@ export default function App() {
           <Route path="/courserecommendation" element={<CourseRecommendation />} />
           <Route path="/roadmap" element={<Roadmap />} />
           <Route path="/MentorshipPage" element={<MentorshipPage />} />
-        </Route>
+          <Route path="/connectnow/:mentorId" element={<ConnectNow />} />
+          <Route path="/mentor/messages" element={<MentorChatApp />} /> {/* Add the route for messages */}
+
+          </Route>
+           {/* ConnectNow Page Route with mentorId as param */}
 
         {/* Subscription and Mentorship Routes */}
-        
+        <Route path="/video-call/:roomID" element={<StudentVideoCall />} />
+        <Route path="/chat/:roomID" element={<StudentChatApp />} />
       </Routes>
     </BrowserRouter>
   );

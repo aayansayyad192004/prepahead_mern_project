@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-
+import { useNavigate } from 'react-router-dom'; 
 const MentorshipPage = () => {
   const [mentors, setMentors] = useState([]);
   const [selectedField, setSelectedField] = useState();
   const [fields, setFields] = useState([]);
-
+  const navigate = useNavigate();
   // Fetch mentors when component mounts
   useEffect(() => {
     const fetchMentors = async () => {
@@ -145,12 +145,11 @@ const MentorshipPage = () => {
               {/* Book Session Button */}
               <button
                 className="bg-gradient-to-r from-blue-500 to-blue-700 text-white py-2 px-6 rounded-lg font-medium shadow hover:from-blue-600 hover:to-blue-800 transition-all duration-300"
-                onClick={() => {
-                  alert('Redirecting to payment gateway...');
-                }}
+                onClick={() => navigate(`/connectnow/${mentor._id}`)} // Navigate to the ConnectNow page with mentor's ID
               >
-                Book Session Now
+                Connect Now
               </button>
+
             </div>
           ))
         ) : (

@@ -14,6 +14,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
     "@reduxjs/toolkit": "^2.2.7",
+    "@zegocloud/zego-uikit-prebuilt": "^2.13.1",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
@@ -48,9 +49,13 @@
     "redux": "^5.0.1",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^3.1.0",
+    "sendbird": "^3.0.126",
     "serpapi": "^2.1.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "validator": "^13.12.0",
-    "vite": "^5.4.8"
+    "vite": "^5.4.8",
+    "zego-zim-web": "^2.18.1"
   },
   "description": ""
 }

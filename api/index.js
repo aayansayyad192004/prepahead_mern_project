@@ -11,6 +11,9 @@ import cookieParser from 'cookie-parser';
 import path from 'path';
 import axios from 'axios';
 import cors from 'cors';
+import http from 'http';
+
+import { Server as socketIo } from 'socket.io';
 
 
 mongoose.connect(process.env.MONGO_URI)
@@ -20,6 +23,8 @@ mongoose.connect(process.env.MONGO_URI)
 const __dirname = path.resolve();
 const app = express();
 
+const server = http.createServer(app);
+const io = new socketIo(server); 
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
@@ -102,6 +107,38 @@ app.get('/api/get-interviews', async (req, res) => {
     console.error('Error fetching interview data:', error);
     res.status(500).json({ error: 'Failed to fetch interview data' });
   }
+});
+
+let users = [];  // Stores connected users
+
+// Listen for new connections
+// Backend: socket.io (server-side)
+io.on('connection', (socket) => {
+  console.log('A user connected');
+
+  // Send the list of students to the mentor
+  io.emit('userList', connectedUsers);
+
+  // Receive a message from a mentor and broadcast it to the selected student
+  socket.on('sendMessage', (data) => {
+    const { message, userId, studentId } = data;
+    // Broadcast the message to the selected student (identified by studentId)
+    io.to(studentId).emit('receiveMessage', { message, userId });
+  });
+
+  // Add user to the list of connected users
+  socket.on('newUser', (username) => {
+    connectedUsers.push({ username, id: socket.id });
+    io.emit('userList', connectedUsers);
+  });
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    console.log('A user disconnected');
+    // Remove user from connected list
+    connectedUsers = connectedUsers.filter(user => user.id !== socket.id);
+    io.emit('userList', connectedUsers);
+  });
 });
 
 
