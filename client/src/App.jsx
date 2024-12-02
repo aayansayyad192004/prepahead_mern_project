@@ -7,13 +7,15 @@ import Profile from './pages/Profile';
 import Header from './components/Header';
 import PrivateRoute from './components/PrivateRoute';
 import Dashboard from './pages/Dashboard';
+
 import MockInterviewPage from './pages/MockInterviewPage'; 
 import SkillAssessment from './pages/SkillAssessment';
 import JobRecommendation from './pages/JobRecommendation';
 import CourseRecommendation from './pages/CourseRecommendation';
 import Roadmap from './pages/Roadmap';
 import MentorshipPage from './pages/MentorshipPage';
-import SubscriptionPage from './pages/SubscriptionPage';
+import PaymentPage from "./pages/PaymentPage"; // Correct import for PaymentPage
+import OverallDashboard from './pages/OverallDashboard';
 
 export default function App() {
   return (
@@ -29,18 +31,21 @@ export default function App() {
 
         {/* Protected Routes */}
         <Route element={<PrivateRoute />}>
+        <Route path="/OverallDashboard" element={<OverallDashboard />} />
+
           <Route path="/profile" element={<Profile />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/mock-interview" element={<MockInterviewPage />} />
           <Route path="/skillassessment" element={<SkillAssessment />} />
           <Route path="/jobrecommendation" element={<JobRecommendation />} />
+          <Route path="/payment" element={<PaymentPage />} />
           <Route path="/courserecommendation" element={<CourseRecommendation />} />
           <Route path="/roadmap" element={<Roadmap />} />
+          <Route path="/MentorshipPage" element={<MentorshipPage />} />
         </Route>
 
         {/* Subscription and Mentorship Routes */}
-        <Route path="/subscription" element={<SubscriptionPage />} />
-        <Route path="/mentorshippage" element={<MentorshipPage />} />
+        
       </Routes>
     </BrowserRouter>
   );

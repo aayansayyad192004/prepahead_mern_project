@@ -67,17 +67,19 @@ export default function Header() {
           </button>
         </form>
         <ul className='flex gap-4 items-center'>
-         
           <Link to='/'>
             <li className='hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline'>
               Home
             </li>
           </Link>
-          <Link to='/Dashboard'>
-            <li className='hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline'>
-              Dashboard
-            </li>
-          </Link>
+          {/* Show Dashboard only if the user is logged in */}
+          {currentUser && (
+            <Link to='/Dashboard'>
+              <li className='hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline'>
+                Dashboard
+              </li>
+            </Link>
+          )}
           <Link to='/About'>
             <li className='hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline'>
               About
@@ -85,9 +87,15 @@ export default function Header() {
           </Link>
           <Link to='/profile'>
             {currentUser ? (
-              <img src={currentUser.profilePicture} alt='profile' className='h-7 w-7 rounded-full object-cover' />
+              <img
+                src={currentUser.profilePicture}
+                alt='profile'
+                className='h-7 w-7 rounded-full object-cover'
+              />
             ) : (
-              <li className='hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline'>Sign In</li>
+              <li className='hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline'>
+                Sign In
+              </li>
             )}
           </Link>
         </ul>
@@ -95,6 +103,3 @@ export default function Header() {
     </header>
   );
 }
-
-         
-        

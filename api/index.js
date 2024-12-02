@@ -5,9 +5,8 @@ dotenv.config();
 import userRoutes from './routes/user.route.js';
 import authRoutes from './routes/auth.route.js';
 import mentorRoutes from './routes/mentor.route.js';
-import subscriptionRoutes from './routes/subscription.route.js';
-import Razorpay from 'razorpay';
 
+import resultRoutes from './routes/results.route.js';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import axios from 'axios';
@@ -61,11 +60,58 @@ app.get('/api/jobs', async (req, res) => {
   }
 });
 
+const interviewSchema = new mongoose.Schema({
+  selectedRole: String,
+  experience: Number,
+  questions: Array,
+  userAnswers: Array,
+  score: Number,
+  timestamp: { type: Date, default: Date.now }
+});
+
+const Interview = mongoose.model('Interview', interviewSchema);
+
+// Route to save interview data
+app.post('/api/save-interview', async (req, res) => {
+  try {
+    const { selectedRole, experience, questions, userAnswers, score } = req.body;
+
+    const newInterview = new Interview({
+      selectedRole,
+      experience,
+      questions,
+      userAnswers,
+      score
+    });
+
+    await newInterview.save();
+    res.status(200).json({ message: 'Interview data saved successfully' });
+  } catch (error) {
+    console.error('Error saving interview data:', error);
+    res.status(500).json({ error: 'Failed to save interview data' });
+  }
+});
+
+// Route to get all interview data
+// Route to get all interview data
+app.get('/api/get-interviews', async (req, res) => {
+  try {
+    const interviews = await Interview.find();  // Fetch all interview records from MongoDB
+    res.status(200).json(interviews);
+  } catch (error) {
+    console.error('Error fetching interview data:', error);
+    res.status(500).json({ error: 'Failed to fetch interview data' });
+  }
+});
+
+
+
 // Use existing routes
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/mentors', mentorRoutes);
-app.use('/api/subscription', subscriptionRoutes);
+app.use('/api', resultRoutes);
+
 
 // Serve the React client (for production)
 app.get('*', (req, res) => {

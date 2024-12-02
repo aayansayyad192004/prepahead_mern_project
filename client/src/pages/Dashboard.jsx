@@ -21,13 +21,19 @@ const Dashboard = () => {
 
   const renderDashboard = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <DashboardCard icon={<FaChartLine />} title="Progress Tracker" content="You've completed 60% of your roadmap" />
+      {/* <DashboardCard icon={<FaChartLine />} title="Progress Tracker" content="You've completed 60% of your roadmap" />
       <DashboardCard icon={<FaCode />} title="Skill Assessment" content="5 new challenges available" />
       <DashboardCard icon={<FaMoneyBillWave />} title="Mentorship" content="3 new mentor sessions available" />
       <DashboardCard icon={<FaRobot />} title="AI Interview Assistant" content="Practice your next interview" />
       <DashboardCard icon={<FaBookOpen />} title="Curated Courses" content="10 recommended courses for you" />
       <DashboardCard icon={<FaBriefcase />} title="Job Portal" content="15 new job openings match your profile" />
-      
+      */}
+      <button onClick={() => navigate('/OverallDashboard')}
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center"
+        >
+      <FaChartLine className="mr-2" /> This is Dashboard
+      </button>
+
     </div>
   );
 
@@ -116,7 +122,7 @@ const Dashboard = () => {
       <div className="bg-gray-100 p-4 rounded-lg mb-6">
         <h3 className="text-xl font-semibold mb-2">Connect with Mentors</h3>
         <p className="text-gray-600 mb-4">Gain valuable insights and guidance by connecting with experienced mentors in your field.</p>
-        <button onClick={() => navigate('/mentorshipPage')} // Navigate to MockInterviewPage
+        <button onClick={() => navigate('/payment')} // Navigate to MockInterviewPage
         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center">
           <FaUserFriends className="mr-2" /> Explore Mentors
         </button>
@@ -241,12 +247,12 @@ const Dashboard = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard':
+      case 'overalldashboard':
         return renderDashboard();
      
       case 'assessment':
         return renderSkillAssessment();
-      case 'mentorshippage':
+      case 'payment':
         return renderMentorship();
       case 'interview':
         return renderAIInterview();
@@ -270,10 +276,10 @@ const Dashboard = () => {
         <nav className="w-full md:w-64 bg-white shadow-md rounded-lg p-6">
           <ul>
             {[
-              { id: 'dashboard', icon: <FaChartLine />, label: 'Dashboard' },
+              { id: 'overalldashboard', icon: <FaChartLine />, label: 'Dashboard' },
              
               { id: 'assessment', icon: <FaCode />, label: 'Skill Assessment' },
-              { id: 'mentorshippage', icon: <FaMoneyBillWave />, label: 'Mentorship' },
+              { id: 'payment', icon: <FaMoneyBillWave />, label: 'Mentorship' },
               { id: 'interview', icon: <FaRobot />, label: 'AI Interview' },
               { id: 'jobrecommendation', icon: <FaBriefcase />, label: 'Apply to Jobs' },
               { id: 'courserecommendation', icon: <FaBookOpen />, label: 'Courses' },
@@ -300,14 +306,6 @@ const Dashboard = () => {
   );
 };
 
-const DashboardCard = ({ icon, title, content }) => (
-  <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
-    <div className="flex items-center mb-4">
-      <div className="text-3xl text-blue-500 mr-4">{icon}</div>
-      <h3 className="text-xl font-semibold">{title}</h3>
-    </div>
-    <p className="text-gray-600">{content}</p>
-  </div>
-);
+
 
 export default Dashboard;

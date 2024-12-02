@@ -8,7 +8,34 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const jobRoles = [
   { "id": 1, "title": "Software Engineer" },
   { "id": 2, "title": "Frontend Developer" },
-  // ... other roles
+  { "id": 3, "title": "Backend Developer" },
+  { "id": 4, "title": "Full Stack Developer" },
+  { "id": 5, "title": "Data Scientist" },
+  { "id": 6, "title": "Machine Learning Engineer" },
+  { "id": 7, "title": "DevOps Engineer" },
+  { "id": 8, "title": "QA Engineer" },
+  { "id": 9, "title": "UI/UX Designer" },
+  { "id": 10, "title": "Mobile App Developer" },
+  { "id": 11, "title": "Cloud Engineer" },
+  { "id": 12, "title": "Product Manager" },
+  { "id": 13, "title": "Cybersecurity Analyst" },
+  { "id": 14, "title": "Business Analyst" },
+  { "id": 15, "title": "System Administrator" },
+  { "id": 16, "title": "Network Engineer" },
+  { "id": 17, "title": "Database Administrator" },
+  { "id": 18, "title": "Game Developer" },
+  { "id": 19, "title": "Software Architect" },
+  { "id": 20, "title": "Technical Support Engineer" },
+  { "id": 21, "title": "IT Consultant" },
+  { "id": 22, "title": "Blockchain Developer" },
+  { "id": 23, "title": "Site Reliability Engineer" },
+  { "id": 24, "title": "Artificial Intelligence Engineer" },
+  { "id": 25, "title": "Embedded Systems Engineer" },
+  { "id": 26, "title": "Ethical Hacker" },
+  { "id": 27, "title": "Data Engineer" },
+  { "id": 28, "title": "Network Administrator" },
+  { "id": 29, "title": "Application Support Engineer" },
+  { "id": 30, "title": "Technical Writer" }
 ];
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY; // For Vite
@@ -107,7 +134,7 @@ const SkillAssessment = () => {
     }
   };
 
-  const calculateScore = () => {
+  const calculateScore = async () => {
     let totalScore = 0;
 
     questions.forEach((question, index) => {
@@ -124,6 +151,27 @@ const SkillAssessment = () => {
     });
 
     setScore(totalScore);
+    try {
+
+      await axios.post("/api/save-results", {
+
+        role: selectedRole,
+
+        experience,
+
+        score: totalScore,
+
+        answers: userAnswers,
+
+      });
+
+      console.log("Results saved successfully!");
+
+    } catch (error) {
+
+      console.error("Error saving results to MongoDB:", error);
+
+    }
   };
 
   return (

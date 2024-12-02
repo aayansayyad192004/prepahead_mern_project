@@ -217,43 +217,63 @@ const stopRecording = () => {
   };
   
 
-  const calculateScore = () => {
-    let totalScore = 0;
 
-    const calculatedAnswers = userAnswers.map((answer, index) => {
-        const correctAnswer = questions[index]?.Answer || "";
-        const similarityScore = calculateSimilarity(transcriptions[index] || "", correctAnswer);
+ const saveInterviewData = async () => {
+  try {
+    const interviewData = {
+      selectedRole,
+      experience,
+      questions,
+      userAnswers,
+      score
+    };
 
-        // Accumulate the score based on similarity
-        totalScore += similarityScore;
-
-        // Analyze the user's response for depth and understanding
-        let understandingScore = 0;
-        if (transcriptions[index]?.includes("specific keyword or concept")) {
-            understandingScore += 0.2; // Adjust scores based on the presence of critical keywords
-        }
-
-        // Calculate final score considering both similarity and understanding
-        const finalScore = (similarityScore + understandingScore) / 2;
-
-        // Provide tailored feedback
-        let feedback;
-        if (finalScore >= 0.8) {
-            feedback = "Excellent! You demonstrated a clear understanding.";
-        } else if (finalScore >= 0.5) {
-            feedback = "Good attempt, but try to incorporate more detailed explanations.";
-        } else {
-            feedback = "Consider revisiting this topic; your answer lacks depth.";
-        }
-
-        return { ...answer, similarityScore: finalScore, feedback };
-    });
-
-    // Set state for calculated answers and score
-    setUserAnswers(calculatedAnswers);
-    setScore(Math.round((totalScore / questions.length) * 10)); // Convert score to a 0-10 scale
+    const response = await axios.post('/api/save-interview', interviewData);
+    console.log('Interview data saved:', response.data);
+  } catch (error) {
+    console.error('Error saving interview data:', error);
+  }
 };
 
+const calculateScore = () => {
+  let totalScore = 0;
+
+  const calculatedAnswers = userAnswers.map((answer, index) => {
+    const correctAnswer = questions[index]?.Answer || "";
+    const similarityScore = calculateSimilarity(transcriptions[index] || "", correctAnswer);
+
+    // Accumulate the score based on similarity
+    totalScore += similarityScore;
+
+    // Analyze the user's response for depth and understanding
+    let understandingScore = 0;
+    if (transcriptions[index]?.includes("specific keyword or concept")) {
+      understandingScore += 0.2; // Adjust scores based on the presence of critical keywords
+    }
+
+    // Calculate final score considering both similarity and understanding
+    const finalScore = (similarityScore + understandingScore) / 2;
+
+    // Provide tailored feedback
+    let feedback;
+    if (finalScore >= 0.8) {
+      feedback = "Excellent! You demonstrated a clear understanding.";
+    } else if (finalScore >= 0.5) {
+      feedback = "Good attempt, but try to incorporate more detailed explanations.";
+    } else {
+      feedback = "Consider revisiting this topic; your answer lacks depth.";
+    }
+
+    return { ...answer, similarityScore: finalScore, feedback };
+  });
+
+  // Set state for calculated answers and score
+  setUserAnswers(calculatedAnswers);
+  setScore(Math.round((totalScore / questions.length) * 10)); // Convert score to a 0-10 scale
+
+  // Save interview data after interview completion
+  saveInterviewData();
+};
 
   const getFeedback = (index) => {
     return userAnswers[index]?.feedback || "Consider revisiting the topic for better clarity.";
