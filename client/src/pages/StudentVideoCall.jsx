@@ -5,6 +5,7 @@ const StudentVideoCall = () => {
   const { roomID } = useParams(); // Get roomID from URL params
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [sharableLink, setSharableLink] = useState(""); // State for storing the sharable link
+  const [loading, setLoading] = useState(true); // State to track the loading status
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -13,6 +14,7 @@ const StudentVideoCall = () => {
       "https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js";
     script.onload = () => {
       initializeZegoSDK();
+      setLoading(false); // Set loading to false once the script is loaded
     };
     document.body.appendChild(script);
 
@@ -78,7 +80,7 @@ const StudentVideoCall = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white p-6">
-      <div className="container mx-auto max-w-4xl p-6 bg-gray-800 rounded-lg shadow-lg">
+      <div className="container mx-auto max-w-4xl p-6 bg-gray-800 rounded-lg shadow-lg relative">
         {/* Leave Room Button */}
         <button
           onClick={handleLeaveRoom}
@@ -90,21 +92,21 @@ const StudentVideoCall = () => {
         {/* Zego Video Call Container */}
         <div id="root"></div>
 
-{/* Show Sharable Link */}
-{!loading && sharableLink && (
-  <div className="mt-4 text-center">
-    <p className="text-white text-lg mb-2">Share this link with others:</p>
-    <a
-      href={sharableLink}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-blue-400 hover:underline"
-    >
-      {sharableLink}
-    </a>
-  </div>
-)}
-</div>
+        {/* Show Sharable Link */}
+        {!loading && sharableLink && (
+          <div className="mt-4 text-center">
+            <p className="text-white text-lg mb-2">Share this link with others:</p>
+            <a
+              href={sharableLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:underline"
+            >
+              {sharableLink}
+            </a>
+          </div>
+        )}
+      </div>
 
       {/* Confirmation Modal */}
       {showLeaveModal && (
