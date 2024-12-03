@@ -4,19 +4,10 @@ import { useNavigate, useParams } from "react-router-dom";
 const StudentVideoCall = () => {
   const { roomID } = useParams(); // Get roomID from URL params
   const [showLeaveModal, setShowLeaveModal] = useState(false);
-  const [sharableLink, setSharableLink] = useState(""); // State for storing the sharable link
   const [loading, setLoading] = useState(true); // State to track the loading status
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Generate the sharable link once the component is mounted
-    const currentLink =
-      window.location.protocol +
-      "//" +
-      window.location.host +
-      `/video-call/${roomID}`; // Modified format to use path instead of query
-    setSharableLink(currentLink);
-
     const script = document.createElement("script");
     script.src =
       "https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js";
@@ -47,12 +38,6 @@ const StudentVideoCall = () => {
     const zp = ZegoUIKitPrebuilt.create(kitToken);
     zp.joinRoom({
       container: document.querySelector("#root"),
-      sharedLinks: [
-        {
-          name: "Personal link",
-          url: sharableLink, // Ensure sharableLink is set before initializing SDK
-        },
-      ],
       scenario: {
         mode: ZegoUIKitPrebuilt.VideoConference,
       },
@@ -84,13 +69,8 @@ const StudentVideoCall = () => {
     setShowLeaveModal(false); // Close the modal
   };
 
-  const handleCopyLink = () => {
-    if (sharableLink) {
-      navigator.clipboard.writeText(sharableLink);
-      alert("Link copied to clipboard!");
-    } else {
-      alert("Sharable link is not available yet.");
-    }
+  const handleGoBack = () => {
+    navigate(-1); // Navigate back to the previous page
   };
 
   return (
@@ -107,26 +87,15 @@ const StudentVideoCall = () => {
         {/* Zego Video Call Container */}
         <div id="root"></div>
 
-        {/* Show Sharable Link */}
-        {!loading && sharableLink && (
+        {/* Back Button */}
+        {!loading && (
           <div className="mt-4 text-center">
-            <p className="text-white text-lg mb-2">Share this link with others:</p>
-            <div className="flex justify-center items-center space-x-4">
-              <a
-                href={sharableLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-400 hover:underline"
-              >
-                {sharableLink}
-              </a>
-              <button
-                onClick={handleCopyLink}
-                className="text-white bg-blue-500 p-2 rounded-lg hover:bg-blue-400"
-              >
-                Copy Link
-              </button>
-            </div>
+            <button
+              onClick={handleGoBack}
+              className="text-white bg-blue-500 p-2 rounded-lg hover:bg-blue-400"
+            >
+              Back
+            </button>
           </div>
         )}
       </div>
