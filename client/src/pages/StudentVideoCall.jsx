@@ -41,6 +41,10 @@ const StudentVideoCall = () => {
     const zp = ZegoUIKitPrebuilt.create(kitToken);
     zp.joinRoom({
       container: document.querySelector("#root"),
+      sharedLinks: [{
+        name: 'Personal link',
+        url: sharableLink,
+      }],
       scenario: {
         mode: ZegoUIKitPrebuilt.VideoConference,
       },
@@ -48,8 +52,13 @@ const StudentVideoCall = () => {
       turnOnCameraWhenJoining: true,
       showMyCameraToggleButton: true,
       showMyMicrophoneToggleButton: true,
+      showAudioVideoSettingsButton: true,
       showScreenSharingButton: true,
       showTextChat: true,
+      showUserList: true,
+      maxUsers: 50,
+      layout: "Auto",
+      showLayoutButton: true,
     });
   };
 
@@ -81,19 +90,21 @@ const StudentVideoCall = () => {
         {/* Zego Video Call Container */}
         <div id="root"></div>
 
-        {/* Display sharable link */}
-        <div className="mt-4 text-center">
-          <p className="text-white text-lg mb-2">Share this link with others:</p>
-          <a
-            href={sharableLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-400 hover:underline"
-          >
-            {sharableLink}
-          </a>
-        </div>
-      </div>
+{/* Show Sharable Link */}
+{!loading && sharableLink && (
+  <div className="mt-4 text-center">
+    <p className="text-white text-lg mb-2">Share this link with others:</p>
+    <a
+      href={sharableLink}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-400 hover:underline"
+    >
+      {sharableLink}
+    </a>
+  </div>
+)}
+</div>
 
       {/* Confirmation Modal */}
       {showLeaveModal && (
