@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 const StudentVideoCall = () => {
   const { roomID } = useParams(); // Get roomID from URL params
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [sharableLink, setSharableLink] = useState(""); // State for storing the sharable link
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,10 +16,14 @@ const StudentVideoCall = () => {
     };
     document.body.appendChild(script);
 
+    // Generate the sharable link
+    const currentLink = window.location.protocol + '//' + window.location.host + window.location.pathname + '?roomID=' + roomID;
+    setSharableLink(currentLink);
+
     return () => {
       document.body.removeChild(script);
     };
-  }, []);
+  }, [roomID]);
 
   const initializeZegoSDK = () => {
     const appID = parseInt(import.meta.env.VITE_ZEGO_APP_ID);
@@ -34,16 +39,8 @@ const StudentVideoCall = () => {
     );
 
     const zp = ZegoUIKitPrebuilt.create(kitToken);
-
-    // Join Room with Shareable Link
     zp.joinRoom({
       container: document.querySelector("#root"),
-      sharedLinks: [
-        {
-          name: "Join this Video Call",
-          url: `${window.location.origin}/student-video-call/${roomID}`,
-        },
-      ],
       scenario: {
         mode: ZegoUIKitPrebuilt.VideoConference,
       },
@@ -83,6 +80,19 @@ const StudentVideoCall = () => {
 
         {/* Zego Video Call Container */}
         <div id="root"></div>
+
+        {/* Display sharable link */}
+        <div className="mt-4 text-center">
+          <p className="text-white text-lg mb-2">Share this link with others:</p>
+          <a
+            href={sharableLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:underline"
+          >
+            {sharableLink}
+          </a>
+        </div>
       </div>
 
       {/* Confirmation Modal */}
