@@ -34,8 +34,16 @@ const StudentVideoCall = () => {
     );
 
     const zp = ZegoUIKitPrebuilt.create(kitToken);
+
+    // Join Room with Shareable Link
     zp.joinRoom({
       container: document.querySelector("#root"),
+      sharedLinks: [
+        {
+          name: "Join this Video Call",
+          url: `${window.location.origin}/student-video-call/${roomID}`,
+        },
+      ],
       scenario: {
         mode: ZegoUIKitPrebuilt.VideoConference,
       },
