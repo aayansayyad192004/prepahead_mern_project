@@ -9,6 +9,14 @@ const StudentVideoCall = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Generate the sharable link once the component is mounted
+    const currentLink =
+      window.location.protocol +
+      "//" +
+      window.location.host +
+      `/video-call/${roomID}`; // Modified format to use path instead of query
+    setSharableLink(currentLink);
+
     const script = document.createElement("script");
     script.src =
       "https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js";
@@ -17,16 +25,6 @@ const StudentVideoCall = () => {
       setLoading(false); // Set loading to false once the script is loaded
     };
     document.body.appendChild(script);
-
-    // Generate the sharable link once the component is mounted
-    const currentLink =
-      window.location.protocol +
-      "//" +
-      window.location.host +
-      window.location.pathname +
-      "?roomID=" +
-      roomID;
-    setSharableLink(currentLink);
 
     return () => {
       document.body.removeChild(script);
@@ -118,13 +116,12 @@ const StudentVideoCall = () => {
               >
                 {sharableLink}
               </a>
-              {/*<button
+              <button
                 onClick={handleCopyLink}
                 className="text-white bg-blue-500 p-2 rounded-lg hover:bg-blue-400"
               >
                 Copy Link
-              </button>*/}
-              
+              </button>
             </div>
           </div>
         )}
