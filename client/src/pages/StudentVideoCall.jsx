@@ -18,8 +18,14 @@ const StudentVideoCall = () => {
     };
     document.body.appendChild(script);
 
-    // Generate the sharable link
-    const currentLink = window.location.protocol + '//' + window.location.host + window.location.pathname + '?roomID=' + roomID;
+    // Generate the sharable link once the component is mounted
+    const currentLink =
+      window.location.protocol +
+      "//" +
+      window.location.host +
+      window.location.pathname +
+      "?roomID=" +
+      roomID;
     setSharableLink(currentLink);
 
     return () => {
@@ -43,10 +49,12 @@ const StudentVideoCall = () => {
     const zp = ZegoUIKitPrebuilt.create(kitToken);
     zp.joinRoom({
       container: document.querySelector("#root"),
-      sharedLinks: [{
-        name: 'Personal link',
-        url: sharableLink,
-      }],
+      sharedLinks: [
+        {
+          name: "Personal link",
+          url: sharableLink, // Make sure sharableLink is set before initializing SDK
+        },
+      ],
       scenario: {
         mode: ZegoUIKitPrebuilt.VideoConference,
       },
@@ -78,6 +86,11 @@ const StudentVideoCall = () => {
     setShowLeaveModal(false); // Close the modal
   };
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(sharableLink);
+    alert("Link copied to clipboard!");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white p-6">
       <div className="container mx-auto max-w-4xl p-6 bg-gray-800 rounded-lg shadow-lg relative">
@@ -96,14 +109,22 @@ const StudentVideoCall = () => {
         {!loading && sharableLink && (
           <div className="mt-4 text-center">
             <p className="text-white text-lg mb-2">Share this link with others:</p>
-            <a
-              href={sharableLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-400 hover:underline"
-            >
-              {sharableLink}
-            </a>
+            <div className="flex justify-center items-center space-x-4">
+              <a
+                href={sharableLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:underline"
+              >
+                {sharableLink}
+              </a>
+              <button
+                onClick={handleCopyLink}
+                className="text-white bg-blue-500 p-2 rounded-lg hover:bg-blue-400"
+              >
+                Copy Link
+              </button>
+            </div>
           </div>
         )}
       </div>
