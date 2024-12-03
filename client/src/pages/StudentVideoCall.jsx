@@ -50,7 +50,7 @@ const StudentVideoCall = () => {
       sharedLinks: [
         {
           name: "Personal link",
-          url: sharableLink, // Make sure sharableLink is set before initializing SDK
+          url: sharableLink, // Ensure sharableLink is set before initializing SDK
         },
       ],
       scenario: {
@@ -85,8 +85,12 @@ const StudentVideoCall = () => {
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(sharableLink);
-    alert("Link copied to clipboard!");
+    if (sharableLink) {
+      navigator.clipboard.writeText(sharableLink);
+      alert("Link copied to clipboard!");
+    } else {
+      alert("Sharable link is not available yet.");
+    }
   };
 
   return (
