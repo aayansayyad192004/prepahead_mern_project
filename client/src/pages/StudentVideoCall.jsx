@@ -118,12 +118,13 @@ const StudentVideoCall = () => {
               >
                 {sharableLink}
               </a>
-              <button
+              {/*<button
                 onClick={handleCopyLink}
                 className="text-white bg-blue-500 p-2 rounded-lg hover:bg-blue-400"
               >
                 Copy Link
-              </button>
+              </button>*/}
+              
             </div>
           </div>
         )}
