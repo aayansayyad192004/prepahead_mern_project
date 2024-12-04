@@ -44,7 +44,7 @@ const ConnectNow = () => {
               Start a text conversation with your mentor anytime.
             </p>
             <button
-              onClick={handleStartChat}
+               onClick={() => navigate(`/chat/${mentor._id}`, { state: { mentor } })}
               className="bg-gradient-to-r from-blue-500 to-blue-700 text-white py-2 px-6 rounded-lg font-medium"
             >
               Start Chat

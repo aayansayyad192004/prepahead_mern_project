@@ -109,33 +109,23 @@ app.get('/api/get-interviews', async (req, res) => {
   }
 });
 
-let users = [];  // Stores connected users
+let connectedUsers = [];
 
-// Listen for new connections
-// Backend: socket.io (server-side)
 io.on('connection', (socket) => {
-  console.log('A user connected');
+  console.log('A user connected:', socket.id);
 
-  // Send the list of students to the mentor
-  io.emit('userList', connectedUsers);
-
-  // Receive a message from a mentor and broadcast it to the selected student
-  socket.on('sendMessage', (data) => {
-    const { message, userId, studentId } = data;
-    // Broadcast the message to the selected student (identified by studentId)
-    io.to(studentId).emit('receiveMessage', { message, userId });
-  });
-
-  // Add user to the list of connected users
   socket.on('newUser', (username) => {
     connectedUsers.push({ username, id: socket.id });
     io.emit('userList', connectedUsers);
   });
 
-  // Handle disconnection
+  socket.on('sendMessage', (data) => {
+    const { message, userId, studentId } = data;
+    io.to(studentId).emit('receiveMessage', { message, userId });
+  });
+
   socket.on('disconnect', () => {
-    console.log('A user disconnected');
-    // Remove user from connected list
+    console.log('A user disconnected:', socket.id);
     connectedUsers = connectedUsers.filter(user => user.id !== socket.id);
     io.emit('userList', connectedUsers);
   });

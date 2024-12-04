@@ -19,7 +19,8 @@ import OverallDashboard from './pages/OverallDashboard';
 import ConnectNow from './pages/ConnectNow';
 import StudentVideoCall from './pages/StudentVideoCall';
 import StudentChatApp from './pages/StudentChatApp';
-import MentorChatApp from './pages/MentorChatApp'; export default function App() {
+import MentorChatApp from './pages/MentorChatApp'; 
+export default function App() {
   return (
     <BrowserRouter>
       {/* Header Component */}
@@ -52,7 +53,7 @@ import MentorChatApp from './pages/MentorChatApp'; export default function App()
 
         {/* Subscription and Mentorship Routes */}
         <Route path="/video-call/:roomID" element={<StudentVideoCall />} />
-        <Route path="/chat/:roomID" element={<StudentChatApp />} />
+        <Route path="/chat/:id" element={<StudentChatApp />} />
       </Routes>
     </BrowserRouter>
   );
