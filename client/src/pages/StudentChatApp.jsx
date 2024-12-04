@@ -25,12 +25,12 @@ const StudentChatApp = ({ mentorId }) => {
       const messageData = { 
         message, 
         userId: currentUser.username, 
-        mentorId
+        mentorId 
       };
 
       socket.emit('sendMessage', messageData); // Emit message to backend
       setMessages((prevMessages) => [...prevMessages, messageData]); // Update local state immediately
-      setMessage('');
+      setMessage(''); 
     }
   };
 
