@@ -48,13 +48,14 @@ const MentorChatApp = () => {
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-        {/* Displaying Mentor Profile */}
+        {/* Displaying Mentor Profile with Image */}
         <h2 className="text-2xl font-semibold mb-4">Welcome, {currentUser.username}</h2>
-        <div className="mb-4">
-          <h3 className="font-semibold">Mentor Profile:</h3>
-          <p>Name: {currentUser.username}</p>
-          <p>Email: {currentUser.email}</p>
-          {/* Add other mentor profile fields here */}
+        <div className="flex items-center mb-4">
+          <img src={currentUser.profilePhoto} alt="Mentor Profile" className="w-12 h-12 rounded-full mr-4" />
+          <div>
+            <p className="font-semibold">{currentUser.username}</p>
+            <p>{currentUser.email}</p>
+          </div>
         </div>
 
         {/* Messages Section */}
@@ -78,9 +79,12 @@ const MentorChatApp = () => {
           <ul>
             {students.map((student, index) => (
               <li key={index} className="flex justify-between items-center">
-                <span>{student}</span>
+                <div className="flex items-center">
+                  <img src={student.profilePhoto} alt={`${student.username} Profile`} className="w-8 h-8 rounded-full mr-4" />
+                  <span>{student.username}</span>
+                </div>
                 <button
-                  onClick={() => handleSendMessage(student)}
+                  onClick={() => handleSendMessage(student.username)}
                   className="text-blue-500"
                 >
                   Chat

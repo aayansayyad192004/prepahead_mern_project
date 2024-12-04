@@ -41,12 +41,13 @@ const StudentChatApp = ({ mentorId }) => {
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
         <h2 className="text-2xl font-semibold mb-4">Welcome, {currentUser.username}</h2>
 
-        {/* Displaying Student Profile */}
-        <div className="mb-4">
-          <h3 className="font-semibold">Student Profile:</h3>
-          <p>Name: {currentUser.username}</p>
-          <p>Email: {currentUser.email}</p>
-          {/* Add other student profile fields here */}
+        {/* Displaying Student Profile with Image */}
+        <div className="flex items-center mb-4">
+          <img src={currentUser.profilePhoto} alt="Student Profile" className="w-12 h-12 rounded-full mr-4" />
+          <div>
+            <p className="font-semibold">{currentUser.username}</p>
+            <p>{currentUser.email}</p>
+          </div>
         </div>
 
         {/* Messages Section */}
