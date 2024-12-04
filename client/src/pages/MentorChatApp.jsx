@@ -51,7 +51,7 @@ const MentorChatApp = () => {
         {/* Displaying Mentor Profile with Image */}
         <h2 className="text-2xl font-semibold mb-4">Welcome, {currentUser.username}</h2>
         <div className="flex items-center mb-4">
-          <img src={currentUser.profilePhoto} alt="Mentor Profile" className="w-12 h-12 rounded-full mr-4" />
+          <img src={currentUser.profilePicture} alt="Mentor Profile" className="w-12 h-12 rounded-full mr-4" />
           <div>
             <p className="font-semibold">{currentUser.username}</p>
             <p>{currentUser.email}</p>

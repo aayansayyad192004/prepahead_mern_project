@@ -43,7 +43,7 @@ const StudentChatApp = ({ mentorId }) => {
 
         {/* Displaying Student Profile with Image */}
         <div className="flex items-center mb-4">
-          <img src={currentUser.profilePhoto} alt="Student Profile" className="w-12 h-12 rounded-full mr-4" />
+          <img src={currentUser.profilePicture} alt="Student Profile" className="w-12 h-12 rounded-full mr-4" />
           <div>
             <p className="font-semibold">{currentUser.username}</p>
             <p>{currentUser.email}</p>
