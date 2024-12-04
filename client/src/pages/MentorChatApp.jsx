@@ -11,10 +11,12 @@ const MentorChatApp = () => {
   const [students, setStudents] = useState([]);
 
   useEffect(() => {
+    // Listen for incoming messages from students
     socket.on('receiveMessage', (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
 
+    // Listen for the list of connected students
     socket.on('userList', (updatedUsers) => {
       setStudents(updatedUsers);
     });
@@ -34,11 +36,14 @@ const MentorChatApp = () => {
 
   const handleSendMessage = (studentId) => {
     if (message.trim()) {
-      socket.emit('sendMessage', {
+      const messageData = {
         message,
         userId: username,
         studentId,
-      });
+      };
+
+      socket.emit('sendMessage', messageData); // Emit message to backend
+      setMessages((prevMessages) => [...prevMessages, messageData]); // Update local state
       setMessage('');
     }
   };

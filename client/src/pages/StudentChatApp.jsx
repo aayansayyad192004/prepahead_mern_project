@@ -10,6 +10,7 @@ const StudentChatApp = ({ mentorId }) => {
   const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
+    // Listen for messages from mentor
     socket.on('receiveMessage', (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
@@ -21,11 +22,14 @@ const StudentChatApp = ({ mentorId }) => {
 
   const handleSendMessage = () => {
     if (message.trim() && currentUser) {
-      socket.emit('sendMessage', { 
+      const messageData = { 
         message, 
         userId: currentUser.username, 
-        mentorId 
-      });
+        mentorId
+      };
+
+      socket.emit('sendMessage', messageData); // Emit message to backend
+      setMessages((prevMessages) => [...prevMessages, messageData]); // Update local state immediately
       setMessage('');
     }
   };

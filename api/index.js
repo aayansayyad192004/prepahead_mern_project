@@ -1,20 +1,18 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-dotenv.config();
 import userRoutes from './routes/user.route.js';
 import authRoutes from './routes/auth.route.js';
 import mentorRoutes from './routes/mentor.route.js';
-
 import resultRoutes from './routes/results.route.js';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import axios from 'axios';
 import cors from 'cors';
 import http from 'http';
-
 import { Server as socketIo } from 'socket.io';
 
+dotenv.config();
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Connected to MongoDB'))
@@ -22,15 +20,12 @@ mongoose.connect(process.env.MONGO_URI)
 
 const __dirname = path.resolve();
 const app = express();
-
 const server = http.createServer(app);
-const io = new socketIo(server); 
+
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '/client/dist')));
-
-
 
 // Job search route
 app.get('/api/jobs', async (req, res) => {
@@ -98,10 +93,9 @@ app.post('/api/save-interview', async (req, res) => {
 });
 
 // Route to get all interview data
-// Route to get all interview data
 app.get('/api/get-interviews', async (req, res) => {
   try {
-    const interviews = await Interview.find();  // Fetch all interview records from MongoDB
+    const interviews = await Interview.find();
     res.status(200).json(interviews);
   } catch (error) {
     console.error('Error fetching interview data:', error);
@@ -109,36 +103,41 @@ app.get('/api/get-interviews', async (req, res) => {
   }
 });
 
+const io = new socketIo(server, {
+  cors: {
+    origin: '*',
+  },
+});
+
 let connectedUsers = [];
 
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
-  socket.on('newUser', (username) => {
-    connectedUsers.push({ username, id: socket.id });
-    io.emit('userList', connectedUsers);
+  socket.on('mentorLogin', (data) => {
+    connectedUsers.push({ username: data.username, socketId: socket.id });
+    io.emit('userList', connectedUsers.map(user => user.username));
+    console.log(`Mentor ${data.username} logged in`);
   });
 
-  socket.on('sendMessage', (data) => {
-    const { message, userId, studentId } = data;
-    io.to(studentId).emit('receiveMessage', { message, userId });
+  socket.on('sendMessage', (messageData) => {
+    const recipientSocket = connectedUsers.find(user => user.username === messageData.mentorId || user.username === messageData.studentId);
+    if (recipientSocket) {
+      io.to(recipientSocket.socketId).emit('receiveMessage', messageData);
+    }
   });
 
   socket.on('disconnect', () => {
-    console.log('A user disconnected:', socket.id);
-    connectedUsers = connectedUsers.filter(user => user.id !== socket.id);
-    io.emit('userList', connectedUsers);
+    connectedUsers = connectedUsers.filter(user => user.socketId !== socket.id);
+    console.log('A user disconnected');
   });
 });
-
-
 
 // Use existing routes
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/mentors', mentorRoutes);
 app.use('/api', resultRoutes);
-
 
 // Serve the React client (for production)
 app.get('*', (req, res) => {
