@@ -7,10 +7,9 @@ const socket = io('http://localhost:10000'); // Replace with your backend URL
 const StudentChatApp = ({ mentorId }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
-  const { currentUser } = useSelector((state) => state.user); // Get user data from Redux store
+  const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
-    // Listen for new messages
     socket.on('receiveMessage', (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
@@ -22,17 +21,16 @@ const StudentChatApp = ({ mentorId }) => {
 
   const handleSendMessage = () => {
     if (message.trim() && currentUser) {
-      // Send message with logged-in user's data
       socket.emit('sendMessage', { 
         message, 
         userId: currentUser.username, 
         mentorId 
       });
-      setMessage(''); // Clear message input
+      setMessage('');
     }
   };
 
-  if (!currentUser) return <p>Loading...</p>; // Handle case when user data is not yet loaded
+  if (!currentUser) return <p>Loading...</p>;
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">

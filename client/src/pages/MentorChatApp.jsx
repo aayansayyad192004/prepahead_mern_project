@@ -8,15 +8,13 @@ const MentorChatApp = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [students, setStudents] = useState([]); // List of connected students
+  const [students, setStudents] = useState([]);
 
   useEffect(() => {
-    // Listen for new messages
     socket.on('receiveMessage', (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
 
-    // Listen for updated list of students
     socket.on('userList', (updatedUsers) => {
       setStudents(updatedUsers);
     });
@@ -29,85 +27,92 @@ const MentorChatApp = () => {
 
   const handleLogin = () => {
     if (username.trim()) {
-      socket.emit('newUser', username);
+      socket.emit('mentorLogin', { username });
       setIsLoggedIn(true);
     }
   };
 
   const handleSendMessage = (studentId) => {
     if (message.trim()) {
-      socket.emit('sendMessage', { message, userId: username, studentId });
-      setMessage(''); // Clear message input
+      socket.emit('sendMessage', {
+        message,
+        userId: username,
+        studentId,
+      });
+      setMessage('');
     }
   };
 
   return (
-    <div className="p-4 max-w-3xl mx-auto">
-      {!isLoggedIn ? (
-        <div className="flex flex-col items-center space-y-4">
-          <input
-            type="text"
-            placeholder="Enter your username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="p-2 border border-gray-300 rounded-md w-72"
-          />
-          <button
-            onClick={handleLogin}
-            className="bg-blue-500 text-white p-2 rounded-md w-72 hover:bg-blue-600"
-          >
-            Join Chat
-          </button>
-        </div>
-      ) : (
-        <div className="flex flex-col items-center space-y-4">
-          <h2 className="text-2xl font-semibold">Welcome, {username}</h2>
-
-          <div className="w-full space-y-4">
-            <h3 className="text-xl font-medium">Messages:</h3>
-            <div className="space-y-2">
-              {messages.map((msg, index) => (
-                <div key={index} className="flex flex-col">
-                  <strong className="text-lg">{msg.userId}:</strong>
-                  <span>{msg.message}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="w-full space-y-2">
-            <h3 className="text-xl font-medium">Select a Student:</h3>
-            <ul className="space-y-2">
-              {students.map((student, index) => (
-                <li key={index}>
-                  <button
-                    onClick={() => handleSendMessage(student.id)} // Use student.id
-                    className="bg-green-500 text-white p-2 rounded-md w-full hover:bg-green-600"
-                  >
-                    Message {student.username}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="flex flex-col items-center space-y-2 w-full">
+    <div className="flex justify-center items-center h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
+        {!isLoggedIn ? (
+          <div>
             <input
               type="text"
-              placeholder="Type a message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="p-2 border border-gray-300 rounded-md w-72"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="p-2 border border-gray-300 rounded-lg w-full mb-4"
             />
             <button
-              onClick={() => handleSendMessage()}
-              className="bg-blue-500 text-white p-2 rounded-md w-72 hover:bg-blue-600"
+              onClick={handleLogin}
+              className="px-6 py-2 bg-blue-500 text-white rounded-lg w-full"
             >
-              Send
+              Log in as Mentor
             </button>
           </div>
-        </div>
-      )}
+        ) : (
+          <div>
+            <h2 className="text-2xl font-semibold mb-4">Mentor Chat</h2>
+
+            <div className="space-y-4 mb-4">
+              <h3 className="font-semibold">Messages:</h3>
+              <div className="space-y-2">
+                {messages.map((msg, index) => (
+                  <div key={index} className="flex items-start space-x-2">
+                    <strong className="text-blue-500">{msg.userId}:</strong>
+                    <span className="text-gray-700">{msg.message}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="font-semibold">Connected Students:</h3>
+              <ul>
+                {students.map((student, index) => (
+                  <li key={index} className="flex justify-between items-center">
+                    <span>{student}</span>
+                    <button
+                      onClick={() => handleSendMessage(student)}
+                      className="text-blue-500"
+                    >
+                      Chat
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex flex-col items-center space-y-4 mt-4">
+              <input
+                type="text"
+                placeholder="Type a message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="p-2 border border-gray-300 rounded-lg w-full"
+              />
+              <button
+                onClick={() => handleSendMessage()}
+                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
