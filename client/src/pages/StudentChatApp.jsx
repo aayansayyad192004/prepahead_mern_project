@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import io from 'socket.io-client';
+import { useSelector } from 'react-redux';
 
 const socket = io('http://localhost:10000'); // Replace with your backend URL
 
-const StudentChatApp = () => {
-  const location = useLocation();
-  const { mentor } = location.state; // Mentor data passed from the MentorshipPage
-  const [messages, setMessages] = useState([]);
+const StudentChatApp = ({ mentorId }) => {
   const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState([]);
+  const { currentUser } = useSelector((state) => state.user); // Get user data from Redux store
 
   useEffect(() => {
-    socket.on('receiveMessage', (data) => {
-      setMessages((prev) => [...prev, data]);
+    // Listen for new messages
+    socket.on('receiveMessage', (newMessage) => {
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
 
     return () => {
@@ -21,61 +21,51 @@ const StudentChatApp = () => {
   }, []);
 
   const handleSendMessage = () => {
-    if (message.trim()) {
-      const newMessage = {
-        sender: 'You',
-        content: message,
-      };
-      socket.emit('sendMessage', newMessage);
-      setMessages((prev) => [...prev, newMessage]);
-      setMessage('');
+    if (message.trim() && currentUser) {
+      // Send message with logged-in user's data
+      socket.emit('sendMessage', { 
+        message, 
+        userId: currentUser.username, 
+        mentorId 
+      });
+      setMessage(''); // Clear message input
     }
   };
 
+  if (!currentUser) return <p>Loading...</p>; // Handle case when user data is not yet loaded
+
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
-      {/* Chat Header */}
-      <div className="bg-blue-500 text-white py-4 px-6 flex items-center">
-        <img
-          src={mentor.profilePicture}
-          alt={mentor.name}
-          className="w-10 h-10 rounded-full mr-4"
-        />
-        <h1 className="text-lg font-semibold">{mentor.name}</h1>
-      </div>
+    <div className="flex justify-center items-center h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
+        <h2 className="text-2xl font-semibold mb-4">Welcome, {currentUser.username}</h2>
 
-      {/* Chat Messages */}
-      <div className="flex-grow p-4 overflow-y-auto">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`mb-4 p-2 rounded-lg ${
-              msg.sender === 'You'
-                ? 'bg-blue-500 text-white self-end'
-                : 'bg-gray-200 text-gray-800 self-start'
-            }`}
-          >
-            <span>{msg.sender}: </span>
-            {msg.content}
+        <div className="space-y-4 mb-4">
+          <h3 className="font-semibold">Messages:</h3>
+          <div className="space-y-2">
+            {messages.map((msg, index) => (
+              <div key={index} className="flex items-start space-x-2">
+                <strong className="text-blue-500">{msg.userId}:</strong>
+                <span className="text-gray-700">{msg.message}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Chat Input */}
-      <div className="p-4 bg-gray-200 flex items-center">
-        <input
-          type="text"
-          placeholder="Type your message"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="flex-grow p-2 border rounded-lg"
-        />
-        <button
-          onClick={handleSendMessage}
-          className="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg"
-        >
-          Send
-        </button>
+        <div className="flex flex-col items-center space-y-4">
+          <input
+            type="text"
+            placeholder="Type a message"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            className="p-2 border border-gray-300 rounded-lg w-full"
+          />
+          <button
+            onClick={handleSendMessage}
+            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Send
+          </button>
+        </div>
       </div>
     </div>
   );

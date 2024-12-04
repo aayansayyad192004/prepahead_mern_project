@@ -1,63 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Resolve Errors</title>
+  <head>
+    <meta charset="UTF-8" />
 
-  <!-- Preload necessary resources -->
-  <link rel="preload" href="https://checkout-static-next.razorpay.com/build/chunks/v2-entry-card-73f10c3e.modern.js" as="script">
-  <link rel="preload" href="https://checkout-static-next.razorpay.com/build/chunks/v2-entry-analytics-7b5e4eac.modern.js" as="script">
-
-</head>
-<body>
-
-  <h1>Fixing Errors in the Code</h1>
-  <p>This page resolves the issues you reported in your code.</p>
-
-  <script>
-    // Handling the TypeError: Cannot destructure property 'mentor' of 'e.state' as it is null
-    function handleState(e) {
-      // Check if e.state exists before destructuring
-      const { mentor } = e.state || {}; // Default to an empty object if e.state is null or undefined
-      if (mentor) {
-        console.log('Mentor:', mentor);
-      } else {
-        console.log('Mentor not found or state is null');
-      }
-    }
-
-    // Simulating a state object
-    let e = {
-      state: null  // Change this to a valid object to test the other case
-    };
-
-    // Call the function with the state object
-    handleState(e);
-
-    // You can also test by assigning e.state to a valid object like:
-    // e.state = { mentor: "John Doe" };
-    // handleState(e);
-
-    // Preload warnings can be avoided by using the preloaded resources immediately
-    // Here we are just using the preloaded resources to avoid warnings.
-
-    // Example of using the preloaded resources
-    const scriptCard = document.createElement('script');
-    scriptCard.src = "https://checkout-static-next.razorpay.com/build/chunks/v2-entry-card-73f10c3e.modern.js";
-    scriptCard.onload = function() {
-      console.log("Card script loaded and used.");
-    };
-    document.body.appendChild(scriptCard);
-
-    const scriptAnalytics = document.createElement('script');
-    scriptAnalytics.src = "https://checkout-static-next.razorpay.com/build/chunks/v2-entry-analytics-7b5e4eac.modern.js";
-    scriptAnalytics.onload = function() {
-      console.log("Analytics script loaded and used.");
-    };
-    document.body.appendChild(scriptAnalytics);
-
-  </script>
-
-</body>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PrepAhead</title>
+    
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script
+    src="https://checkout.razorpay.com/v1/checkout.js"
+    async
+  ></script>
+  </body>
 </html>
