@@ -11,15 +11,17 @@ const ConnectNow = () => {
   const goBack = () => {
     navigate('/MentorshipPage'); // Go back to Mentorship page
   };
+
   const handleStartChat = () => {
     // Generate a random roomID for the chat
     const roomID = Math.floor(Math.random() * 10000) + "";
     navigate(`/chat/${roomID}?mentorId=${mentorId || "defaultMentorId"}`);
   };
+
   const handleScheduleCall = () => {
     // Generate a random roomID (or implement logic to fetch based on mentor)
     const roomID = Math.floor(Math.random() * 10000) + "";
-    
+
     // Navigate to the StudentVideoCall page with the roomID
     navigate(`/video-call/${roomID}`);
   };
@@ -44,7 +46,7 @@ const ConnectNow = () => {
               Start a text conversation with your mentor anytime.
             </p>
             <button
-               onClick={() => navigate(`/chat/${mentor._id}`, { state: { mentor } })}
+              onClick={handleStartChat}
               className="bg-gradient-to-r from-blue-500 to-blue-700 text-white py-2 px-6 rounded-lg font-medium"
             >
               Start Chat
