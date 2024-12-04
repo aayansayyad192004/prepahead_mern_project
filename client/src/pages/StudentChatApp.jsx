@@ -25,12 +25,12 @@ const StudentChatApp = ({ mentorId }) => {
       const messageData = { 
         message, 
         userId: currentUser.username, 
-        mentorId 
+        mentorId
       };
 
       socket.emit('sendMessage', messageData); // Emit message to backend
       setMessages((prevMessages) => [...prevMessages, messageData]); // Update local state immediately
-      setMessage(''); 
+      setMessage('');
     }
   };
 
@@ -41,18 +41,30 @@ const StudentChatApp = ({ mentorId }) => {
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
         <h2 className="text-2xl font-semibold mb-4">Welcome, {currentUser.username}</h2>
 
+        {/* Displaying Student Profile */}
+        <div className="mb-4">
+          <h3 className="font-semibold">Student Profile:</h3>
+          <p>Name: {currentUser.username}</p>
+          <p>Email: {currentUser.email}</p>
+          {/* Add other student profile fields here */}
+        </div>
+
+        {/* Messages Section */}
         <div className="space-y-4 mb-4">
           <h3 className="font-semibold">Messages:</h3>
           <div className="space-y-2">
             {messages.map((msg, index) => (
               <div key={index} className="flex items-start space-x-2">
-                <strong className="text-blue-500">{msg.userId}:</strong>
+                <strong className={`text-${msg.userId === currentUser.username ? 'green' : 'blue'}-500`}>
+                  {msg.userId}:
+                </strong>
                 <span className="text-gray-700">{msg.message}</span>
               </div>
             ))}
           </div>
         </div>
 
+        {/* Message Input */}
         <div className="flex flex-col items-center space-y-4">
           <input
             type="text"

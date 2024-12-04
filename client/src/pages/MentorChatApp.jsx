@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
+import { useSelector } from 'react-redux';
 
 const socket = io('http://localhost:10000'); // Replace with your backend URL
 
-const MentorChatApp = ({ mentorId }) => {
+const MentorChatApp = () => {
+  const { currentUser } = useSelector((state) => state.user);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [students, setStudents] = useState([]);
@@ -11,7 +13,10 @@ const MentorChatApp = ({ mentorId }) => {
   useEffect(() => {
     // Listen for incoming messages from students
     socket.on('receiveMessage', (newMessage) => {
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      // Only display messages sent to the mentor
+      if (newMessage.mentorId === currentUser.username) {
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+      }
     });
 
     // Listen for the list of connected students
@@ -23,40 +28,52 @@ const MentorChatApp = ({ mentorId }) => {
       socket.off('receiveMessage');
       socket.off('userList');
     };
-  }, []);
+  }, [currentUser]);
 
   const handleSendMessage = (studentId) => {
     if (message.trim()) {
       const messageData = {
         message,
-        userId: mentorId,
+        userId: currentUser.username,
         studentId,
+        mentorId: currentUser.username // Ensure the message goes to the correct mentor
       };
 
       socket.emit('sendMessage', messageData); // Emit message to backend
       setMessages((prevMessages) => [...prevMessages, messageData]); // Update local state
-      setMessage(''); // Clear input
+      setMessage('');
     }
   };
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-        <h2 className="text-2xl font-semibold mb-4">Mentor Chat</h2>
+        {/* Displaying Mentor Profile */}
+        <h2 className="text-2xl font-semibold mb-4">Welcome, {currentUser.username}</h2>
+        <div className="mb-4">
+          <h3 className="font-semibold">Mentor Profile:</h3>
+          <p>Name: {currentUser.username}</p>
+          <p>Email: {currentUser.email}</p>
+          {/* Add other mentor profile fields here */}
+        </div>
 
+        {/* Messages Section */}
         <div className="space-y-4 mb-4">
           <h3 className="font-semibold">Messages:</h3>
           <div className="space-y-2">
             {messages.map((msg, index) => (
               <div key={index} className="flex items-start space-x-2">
-                <strong className="text-blue-500">{msg.userId}:</strong>
+                <strong className={`text-${msg.userId === currentUser.username ? 'green' : 'blue'}-500`}>
+                  {msg.userId}:
+                </strong>
                 <span className="text-gray-700">{msg.message}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="space-y-4">
+        {/* Connected Students */}
+        <div className="space-y-4 mb-4">
           <h3 className="font-semibold">Connected Students:</h3>
           <ul>
             {students.map((student, index) => (
@@ -73,6 +90,7 @@ const MentorChatApp = ({ mentorId }) => {
           </ul>
         </div>
 
+        {/* Message Input */}
         <div className="flex flex-col items-center space-y-4 mt-4">
           <input
             type="text"
