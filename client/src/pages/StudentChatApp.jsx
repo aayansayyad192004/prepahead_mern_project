@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
 
-// Replace with your actual backend URL
-const socket = io(BACKEND_URL);
+// Connect to the current domain automatically
+const socket = io();
 
 const StudentChatApp = ({ mentorId }) => {
   const [message, setMessage] = useState('');
@@ -12,27 +12,13 @@ const StudentChatApp = ({ mentorId }) => {
   const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
-    const fetchMentorInfo = async () => {
-      try {
-        const res = await fetch(`/api/mentors/${mentorId}`);
+    // Fetch mentor info using relative URL
+    fetch(`/mentor/${mentorId}`)
+      .then((response) => response.json())
+      .then((data) => setMentorInfo(data))
+      .catch((error) => console.error('Error fetching mentor info:', error));
 
-        if (!res.ok) {
-          // Log status and response to diagnose server issues
-          const errorText = await res.text(); // Reading the response as text
-          console.error('Error Response:', errorText); // Log error response text
-          throw new Error(`Failed to fetch mentor info: ${res.statusText}`);
-        }
-
-        const data = await res.json(); // Parse the response as JSON
-        setMentorInfo(data); // Set the mentor info to state
-      } catch (error) {
-        console.error('Error fetching mentor info:', error);
-      }
-    };
-
-    fetchMentorInfo();
-
-    // Listen for incoming messages
+    // Listen for messages
     socket.on('receiveMessage', (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
@@ -53,7 +39,6 @@ const StudentChatApp = ({ mentorId }) => {
     }
   };
 
-  // Loading state
   if (!currentUser || !mentorInfo) return <p>Loading...</p>;
 
   return (
