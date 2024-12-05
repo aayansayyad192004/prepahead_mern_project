@@ -103,6 +103,8 @@ app.get('/api/get-interviews', async (req, res) => {
   }
 });
 
+
+
 const io = new socketIo(server, {
   cors: {
     origin: '*',
@@ -161,7 +163,6 @@ app.get('/api/messages', async (req, res) => {
     res.status(500).json({ error: 'Error fetching messages' });
   }
 });
-
 // Use existing routes
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
