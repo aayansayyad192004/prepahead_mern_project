@@ -13,7 +13,6 @@ const MentorChatApp = () => {
   const [students, setStudents] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
 
-  // Fetch students who have messaged this mentor
   useEffect(() => {
     const fetchStudents = async () => {
       if (currentUser) {
@@ -30,18 +29,14 @@ const MentorChatApp = () => {
   }, [currentUser]);
 
   useEffect(() => {
-    // Register user
     if (currentUser) {
       socket.emit('registerUser', { username: currentUser.username });
     }
 
     if (currentChat) {
-      // Fetch previous messages
       const fetchMessages = async () => {
         try {
-          const response = await axios.get(
-            `/api/messages?sender=${currentChat}&receiver=${currentUser.username}`
-          );
+          const response = await axios.get(`/api/messages?sender=${currentChat}&receiver=${currentUser.username}`);
           setMessages(response.data);
         } catch (error) {
           console.error('Error fetching messages:', error);
@@ -50,7 +45,6 @@ const MentorChatApp = () => {
       fetchMessages();
     }
 
-    // Listen for messages
     socket.on('receiveMessage', (newMessage) => {
       if (
         (newMessage.sender === currentChat && newMessage.receiver === currentUser.username) ||
@@ -74,7 +68,7 @@ const MentorChatApp = () => {
       };
 
       socket.emit('sendMessage', messageData);
-      setMessages((prev) => [...prev, messageData]);
+      setMessages((prevMessages) => [...prevMessages, messageData]);
       setMessage('');
     }
   };
@@ -82,10 +76,8 @@ const MentorChatApp = () => {
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-        <h2 className="text-2xl font-semibold mb-4">Mentor Chat</h2>
-
-        {/* Students List */}
-        <div className="mb-4">
+        <h2 className="text-2xl font-semibold mb-4">Welcome, {currentUser.username}</h2>
+        <div className="space-y-4 mb-4">
           <h3 className="font-semibold">Select a Student to Chat:</h3>
           <ul>
             {Array.isArray(students) && students.map((student) => (
@@ -110,48 +102,38 @@ const MentorChatApp = () => {
           </ul>
         </div>
 
-        {/* Current Chat Section */}
-        {currentChat && (
-          <div>
-            <h4 className="font-semibold mb-4">Chat with {currentChat}</h4>
-            <div className="space-y-4 mb-4 h-64 overflow-y-auto">
-              {Array.isArray(messages) && messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`flex items-start space-x-2 ${
-                    msg.sender === currentUser.username ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  <div className={`p-2 rounded-lg ${
-                    msg.sender === currentUser.username
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-200 text-black'
-                  }`}>
-                    {msg.message}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Message Input */}
-            <div className="flex flex-col items-center space-y-4">
-              <input
-                type="text"
-                placeholder="Type a message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                className="p-2 border border-gray-300 rounded-lg w-full"
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              />
-              <button
-                onClick={handleSendMessage}
-                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+        <div className="space-y-4 mb-4">
+          <h3 className="font-semibold">Messages with {currentChat}:</h3>
+          <div className="space-y-2 h-64 overflow-y-auto">
+            {Array.isArray(messages) && messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex items-start space-x-2 ${msg.sender === currentUser.username ? 'justify-end' : 'justify-start'}`}
               >
-                Send
-              </button>
-            </div>
+                <div className={`p-2 rounded-lg ${msg.sender === currentUser.username ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}>
+                  {msg.message}
+                </div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+
+        <div className="flex flex-col items-center space-y-4">
+          <input
+            type="text"
+            placeholder="Type a message"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            className="p-2 border border-gray-300 rounded-lg w-full"
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+          />
+          <button
+            onClick={handleSendMessage}
+            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Send
+          </button>
+        </div>
       </div>
     </div>
   );
