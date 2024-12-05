@@ -3,7 +3,6 @@ import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
 
 // Replace with your actual backend URL
-const BACKEND_URL = 'http://localhost:10000';
 const socket = io(BACKEND_URL);
 
 const StudentChatApp = ({ mentorId }) => {
@@ -15,7 +14,7 @@ const StudentChatApp = ({ mentorId }) => {
   useEffect(() => {
     const fetchMentorInfo = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/mentors/${mentorId}`);
+        const res = await fetch(`/api/mentors/${mentorId}`);
 
         if (!res.ok) {
           // Log status and response to diagnose server issues
