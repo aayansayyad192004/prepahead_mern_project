@@ -9,17 +9,20 @@ const MentorChatApp = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [students, setStudents] = useState([]);
+  const [studentInfo, setStudentInfo] = useState(null);
 
   useEffect(() => {
-    // Listen for incoming messages from students
     socket.on('receiveMessage', (newMessage) => {
-      // Only display messages sent to the mentor
       if (newMessage.mentorId === currentUser.username) {
+        // Fetch student info based on the studentId
+        fetch(`http://localhost:10000/student/${newMessage.userId}`)
+          .then((response) => response.json())
+          .then((data) => setStudentInfo(data));
+
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
     });
 
-    // Listen for the list of connected students
     socket.on('userList', (updatedUsers) => {
       setStudents(updatedUsers);
     });
@@ -36,11 +39,11 @@ const MentorChatApp = () => {
         message,
         userId: currentUser.username,
         studentId,
-        mentorId: currentUser.username // Ensure the message goes to the correct mentor
+        mentorId: currentUser.username
       };
 
-      socket.emit('sendMessage', messageData); // Emit message to backend
-      setMessages((prevMessages) => [...prevMessages, messageData]); // Update local state
+      socket.emit('sendMessage', messageData);
+      setMessages((prevMessages) => [...prevMessages, messageData]);
       setMessage('');
     }
   };
@@ -48,8 +51,9 @@ const MentorChatApp = () => {
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-        {/* Displaying Mentor Profile with Image */}
         <h2 className="text-2xl font-semibold mb-4">Welcome, {currentUser.username}</h2>
+
+        {/* Displaying Mentor Profile */}
         <div className="flex items-center mb-4">
           <img src={currentUser.profilePicture} alt="Mentor Profile" className="w-12 h-12 rounded-full mr-4" />
           <div>
@@ -57,6 +61,17 @@ const MentorChatApp = () => {
             <p>{currentUser.email}</p>
           </div>
         </div>
+
+        {/* Displaying Student Info when a message is received */}
+        {studentInfo && (
+          <div className="flex items-center mb-4">
+            <img src={studentInfo.profilePhoto} alt="Student Profile" className="w-12 h-12 rounded-full mr-4" />
+            <div>
+              <p className="font-semibold">{studentInfo.username}</p>
+              <p>{studentInfo.email}</p>
+            </div>
+          </div>
+        )}
 
         {/* Messages Section */}
         <div className="space-y-4 mb-4">
@@ -71,27 +86,6 @@ const MentorChatApp = () => {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Connected Students */}
-        <div className="space-y-4 mb-4">
-          <h3 className="font-semibold">Connected Students:</h3>
-          <ul>
-            {students.map((student, index) => (
-              <li key={index} className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <img src={student.profilePhoto} alt={`${student.username} Profile`} className="w-8 h-8 rounded-full mr-4" />
-                  <span>{student.username}</span>
-                </div>
-                <button
-                  onClick={() => handleSendMessage(student.username)}
-                  className="text-blue-500"
-                >
-                  Chat
-                </button>
-              </li>
-            ))}
-          </ul>
         </div>
 
         {/* Message Input */}
@@ -114,5 +108,6 @@ const MentorChatApp = () => {
     </div>
   );
 };
+
 
 export default MentorChatApp;

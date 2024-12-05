@@ -7,9 +7,15 @@ const socket = io('http://localhost:10000'); // Replace with your backend URL
 const StudentChatApp = ({ mentorId }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
+  const [mentorInfo, setMentorInfo] = useState(null);
   const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
+    // Fetch mentor info by mentorId (you can fetch it from your backend)
+    fetch(`http://localhost:10000/mentor/${mentorId}`)
+      .then((response) => response.json())
+      .then((data) => setMentorInfo(data));
+
     // Listen for messages from mentor
     socket.on('receiveMessage', (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
@@ -18,7 +24,7 @@ const StudentChatApp = ({ mentorId }) => {
     return () => {
       socket.off('receiveMessage');
     };
-  }, []);
+  }, [mentorId]);
 
   const handleSendMessage = () => {
     if (message.trim() && currentUser) {
@@ -28,13 +34,13 @@ const StudentChatApp = ({ mentorId }) => {
         mentorId
       };
 
-      socket.emit('sendMessage', messageData); // Emit message to backend
-      setMessages((prevMessages) => [...prevMessages, messageData]); // Update local state immediately
+      socket.emit('sendMessage', messageData);
+      setMessages((prevMessages) => [...prevMessages, messageData]);
       setMessage('');
     }
   };
 
-  if (!currentUser) return <p>Loading...</p>;
+  if (!currentUser || !mentorInfo) return <p>Loading...</p>;
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
@@ -47,6 +53,15 @@ const StudentChatApp = ({ mentorId }) => {
           <div>
             <p className="font-semibold">{currentUser.username}</p>
             <p>{currentUser.email}</p>
+          </div>
+        </div>
+
+        {/* Displaying Mentor's Info */}
+        <div className="flex items-center mb-4">
+          <img src={mentorInfo.profilePicture} alt="Mentor Profile" className="w-12 h-12 rounded-full mr-4" />
+          <div>
+            <p className="font-semibold">{mentorInfo.username}</p>
+            <p>{mentorInfo.email}</p>
           </div>
         </div>
 
@@ -85,5 +100,4 @@ const StudentChatApp = ({ mentorId }) => {
     </div>
   );
 };
-
 export default StudentChatApp;
