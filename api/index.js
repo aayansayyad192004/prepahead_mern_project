@@ -11,7 +11,7 @@ import axios from 'axios';
 import cors from 'cors';
 import http from 'http';
 import { Server as socketIo } from 'socket.io';
-import Message from './models/Message.js';
+
 dotenv.config();
 
 mongoose.connect(process.env.MONGO_URI)
@@ -103,8 +103,6 @@ app.get('/api/get-interviews', async (req, res) => {
   }
 });
 
-
-
 const io = new socketIo(server, {
   cors: {
     origin: '*',
@@ -116,61 +114,16 @@ let connectedUsers = [];
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
-  // Add user registration
-  socket.on('registerUser', (userData) => {
-    const existingUser = connectedUsers.find(user => user.username === userData.username);
-    if (!existingUser) {
-      connectedUsers.push({
-        username: userData.username,
-        socketId: socket.id
-      });
-      console.log('User registered:', userData.username);
-    }
+  socket.on('mentorLogin', (data) => {
+    connectedUsers.push({ username: data.username, socketId: socket.id });
+    io.emit('userList', connectedUsers.map(user => user.username));
+    console.log(`Mentor ${data.username} logged in`);
   });
 
-  socket.on('sendMessage', async (messageData) => {
-    try {
-      // Validate message data thoroughly
-      if (!messageData.sender || !messageData.receiver || !messageData.message) {
-        console.error('Invalid message data:', messageData);
-        return;
-      }
-
-      // Save the message to MongoDB
-      const newMessage = new Message({
-        sender: messageData.sender,
-        receiver: messageData.receiver,
-        message: messageData.message
-      });
-
-      try {
-        await newMessage.save();
-        console.log('Message saved successfully:', newMessage);
-      } catch (saveError) {
-        console.error('Error saving message to database:', saveError);
-        socket.emit('messageError', { 
-          error: 'Failed to save message', 
-          details: saveError.message 
-        });
-        return;
-      }
-
-      // Find the recipient's socket
-      const recipientSocket = connectedUsers.find(
-        user => user.username === messageData.receiver
-      );
-
-      // Emit to recipient if connected
-      if (recipientSocket) {
-        io.to(recipientSocket.socketId).emit('receiveMessage', messageData);
-      }
-
-      // Always emit back to sender for immediate UI update
-      socket.emit('messageAck', { ...messageData, status: 'sent' });
-
-    } catch (error) {
-      console.error('Unexpected error in sendMessage:', error);
-      socket.emit('messageError', { error: 'Unexpected error occurred' });
+  socket.on('sendMessage', (messageData) => {
+    const recipientSocket = connectedUsers.find(user => user.username === messageData.mentorId || user.username === messageData.studentId);
+    if (recipientSocket) {
+      io.to(recipientSocket.socketId).emit('receiveMessage', messageData);
     }
   });
 
@@ -180,49 +133,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Add a route to fetch students for a mentor
-app.get('/api/mentors/students', async (req, res) => {
-  try {
-    const { mentorUsername } = req.query;
-
-    // Find unique students who have sent messages to this mentor
-    const students = await Message.aggregate([
-      {
-        $match: { 
-          receiver: mentorUsername 
-        }
-      },
-      {
-        $group: {
-          _id: '$sender'
-        }
-      },
-      {
-        $lookup: {
-          from: 'users', // Ensure this matches your users collection name
-          localField: '_id',
-          foreignField: 'username',
-          as: 'studentDetails'
-        }
-      },
-      {
-        $unwind: '$studentDetails'
-      },
-      {
-        $project: {
-          username: '$studentDetails.username',
-          email: '$studentDetails.email',
-          profilePicture: '$studentDetails.profilePicture'
-        }
-      }
-    ]);
-
-    res.status(200).json(students);
-  } catch (error) {
-    console.error('Error fetching students:', error);
-    res.status(500).json({ error: 'Failed to fetch students' });
-  }
-});
 // Use existing routes
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
