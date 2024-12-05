@@ -11,7 +11,7 @@ import axios from 'axios';
 import cors from 'cors';
 import http from 'http';
 import { Server as socketIo } from 'socket.io';
-
+import Message from './models/Message.js';
 dotenv.config();
 
 mongoose.connect(process.env.MONGO_URI)
@@ -109,30 +109,56 @@ const io = new socketIo(server, {
   },
 });
 
-let connectedUsers = [];
-
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
-  socket.on('mentorLogin', (data) => {
-    connectedUsers.push({ username: data.username, socketId: socket.id });
-    io.emit('userList', connectedUsers.map(user => user.username));
-    console.log(`Mentor ${data.username} logged in`);
-  });
+  socket.on('sendMessage', async (messageData) => {
+    const { message, userId, mentorId, studentId } = messageData;
 
-  socket.on('sendMessage', (messageData) => {
-    const recipientSocket = connectedUsers.find(user => user.username === messageData.mentorId || user.username === messageData.studentId);
-    if (recipientSocket) {
-      io.to(recipientSocket.socketId).emit('receiveMessage', messageData);
+    try {
+      // Save the message to MongoDB
+      const newMessage = new Message({
+        sender: userId,
+        receiver: mentorId || studentId,
+        message,
+      });
+      await newMessage.save();
+
+      // Find the recipient's socket ID
+      const recipient = connectedUsers.find(
+        (user) => user.username === mentorId || user.username === studentId
+      );
+
+      if (recipient) {
+        io.to(recipient.socketId).emit('receiveMessage', messageData);
+      }
+    } catch (error) {
+      console.error('Error saving message:', error);
     }
   });
 
   socket.on('disconnect', () => {
-    connectedUsers = connectedUsers.filter(user => user.socketId !== socket.id);
+    connectedUsers = connectedUsers.filter((user) => user.socketId !== socket.id);
     console.log('A user disconnected');
   });
 });
 
+app.get('/api/messages', async (req, res) => {
+  const { sender, receiver } = req.query;
+
+  try {
+    const messages = await Message.find({
+      $or: [
+        { sender, receiver },
+        { sender: receiver, receiver: sender },
+      ],
+    }).sort({ timestamp: 1 });
+
+    res.status(200).json(messages);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching messages' });
+  }
+});
 // Use existing routes
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
