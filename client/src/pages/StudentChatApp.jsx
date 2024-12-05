@@ -14,18 +14,22 @@ const StudentChatApp = ({ mentorId }) => {
 
   useEffect(() => {
     // Fetch mentor info
-    fetch(`${BACKEND_URL}/api/mentors/${mentorId}`)
-      .then((response) => {
-        if (!response.ok) {
-          // If the response is not OK (status code not in the range 200-299)
-          throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    const fetchMentorInfo = async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/mentors/${mentorId}`);
+        if (!res.ok) {
+          const errorText = await res.text(); // Get error response text
+          console.error('Server response:', errorText); // Log the response
+          throw new Error('Failed to fetch mentor data');
         }
-        return response.json();  // Parse JSON if the response is valid
-      })
-      .then((data) => setMentorInfo(data))
-      .catch((error) => {
-        console.error('Error fetching mentor info:', error.message);
-      });
+        const data = await res.json();
+        setMentorInfo(data);
+      } catch (error) {
+        console.error('Error fetching mentor info:', error);
+      }
+    };
+
+    fetchMentorInfo(); // Call the async function
 
     // Listen for messages
     socket.on('receiveMessage', (newMessage) => {
