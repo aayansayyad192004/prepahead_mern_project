@@ -121,9 +121,11 @@ io.on('connection', (socket) => {
   });
 
   socket.on('sendMessage', (messageData) => {
-    const recipientSocket = connectedUsers.find(user => user.username === messageData.mentorId || user.username === messageData.studentId);
-    if (recipientSocket) {
-      io.to(recipientSocket.socketId).emit('receiveMessage', messageData);
+    const recipient = connectedUsers.find(user => 
+      user.username === messageData.mentorId || user.username === messageData.studentId
+    );
+    if (recipient) {
+      io.to(recipient.socketId).emit('receiveMessage', messageData);
     }
   });
 
@@ -132,6 +134,7 @@ io.on('connection', (socket) => {
     console.log('A user disconnected');
   });
 });
+
 
 // Use existing routes
 app.use('/api/user', userRoutes);

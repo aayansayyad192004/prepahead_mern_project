@@ -9,20 +9,17 @@ const MentorChatApp = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [students, setStudents] = useState([]);
-  const [studentInfo, setStudentInfo] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   useEffect(() => {
+    // Listen for incoming messages
     socket.on('receiveMessage', (newMessage) => {
       if (newMessage.mentorId === currentUser.username) {
-        // Fetch student info based on the studentId
-        fetch(`http://localhost:10000/student/${newMessage.userId}`)
-          .then((response) => response.json())
-          .then((data) => setStudentInfo(data));
-
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
     });
 
+    // Fetch students list
     socket.on('userList', (updatedUsers) => {
       setStudents(updatedUsers);
     });
@@ -33,13 +30,13 @@ const MentorChatApp = () => {
     };
   }, [currentUser]);
 
-  const handleSendMessage = (studentId) => {
-    if (message.trim()) {
+  const handleSendMessage = () => {
+    if (message.trim() && selectedStudent) {
       const messageData = {
         message,
         userId: currentUser.username,
-        studentId,
-        mentorId: currentUser.username
+        studentId: selectedStudent.username,
+        mentorId: currentUser.username,
       };
 
       socket.emit('sendMessage', messageData);
@@ -53,25 +50,34 @@ const MentorChatApp = () => {
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
         <h2 className="text-2xl font-semibold mb-4">Welcome, {currentUser.username}</h2>
 
-        {/* Displaying Mentor Profile */}
+        {/* Mentor Profile */}
         <div className="flex items-center mb-4">
-          <img src={currentUser.profilePicture} alt="Mentor Profile" className="w-12 h-12 rounded-full mr-4" />
+          <img
+            src={currentUser.profilePicture || '/placeholder.png'}
+            alt="Mentor Profile"
+            className="w-12 h-12 rounded-full mr-4"
+          />
           <div>
             <p className="font-semibold">{currentUser.username}</p>
             <p>{currentUser.email}</p>
           </div>
         </div>
 
-        {/* Displaying Student Info when a message is received */}
-        {studentInfo && (
-          <div className="flex items-center mb-4">
-            <img src={studentInfo.profilePhoto} alt="Student Profile" className="w-12 h-12 rounded-full mr-4" />
-            <div>
-              <p className="font-semibold">{studentInfo.username}</p>
-              <p>{studentInfo.email}</p>
-            </div>
-          </div>
-        )}
+        {/* Select Student */}
+        <div className="mb-4">
+          <h3 className="font-semibold">Select a Student:</h3>
+          <select
+            onChange={(e) => setSelectedStudent(JSON.parse(e.target.value))}
+            className="p-2 border border-gray-300 rounded-lg w-full"
+          >
+            <option value="">-- Select a Student --</option>
+            {students.map((student) => (
+              <option key={student.username} value={JSON.stringify(student)}>
+                {student.username}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Messages Section */}
         <div className="space-y-4 mb-4">
@@ -79,7 +85,11 @@ const MentorChatApp = () => {
           <div className="space-y-2">
             {messages.map((msg, index) => (
               <div key={index} className="flex items-start space-x-2">
-                <strong className={`text-${msg.userId === currentUser.username ? 'green' : 'blue'}-500`}>
+                <strong
+                  className={`${
+                    msg.userId === currentUser.username ? 'text-green-500' : 'text-blue-500'
+                  }`}
+                >
                   {msg.userId}:
                 </strong>
                 <span className="text-gray-700">{msg.message}</span>
@@ -98,7 +108,7 @@ const MentorChatApp = () => {
             className="p-2 border border-gray-300 rounded-lg w-full"
           />
           <button
-            onClick={() => handleSendMessage()}
+            onClick={handleSendMessage}
             className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
             Send
@@ -108,6 +118,5 @@ const MentorChatApp = () => {
     </div>
   );
 };
-
 
 export default MentorChatApp;
