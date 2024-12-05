@@ -13,25 +13,27 @@ const StudentChatApp = ({ mentorId }) => {
   const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
-    // Fetch mentor info
     const fetchMentorInfo = async () => {
       try {
         const res = await fetch(`${BACKEND_URL}/api/mentors/${mentorId}`);
+
         if (!res.ok) {
-          console.error('Error response:', res.status, res.statusText);
-          throw new Error('Failed to fetch mentor data');
+          // Log status and response to diagnose server issues
+          const errorText = await res.text(); // Reading the response as text
+          console.error('Error Response:', errorText); // Log error response text
+          throw new Error(`Failed to fetch mentor info: ${res.statusText}`);
         }
-        const data = await res.json();
-        setMentorInfo(data);
+
+        const data = await res.json(); // Parse the response as JSON
+        setMentorInfo(data); // Set the mentor info to state
       } catch (error) {
         console.error('Error fetching mentor info:', error);
       }
     };
-    
 
-    fetchMentorInfo(); // Call the async function
+    fetchMentorInfo();
 
-    // Listen for messages
+    // Listen for incoming messages
     socket.on('receiveMessage', (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
@@ -52,6 +54,7 @@ const StudentChatApp = ({ mentorId }) => {
     }
   };
 
+  // Loading state
   if (!currentUser || !mentorInfo) return <p>Loading...</p>;
 
   return (
