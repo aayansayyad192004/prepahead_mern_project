@@ -16,7 +16,6 @@ const MentorChatApp = () => {
   useEffect(() => {
     // Fetch student list (replace with actual data fetching logic)
     const fetchStudents = async () => {
-      // Simulate fetching student data (you should replace this with real API call)
       const response = await fetch('http://localhost:10000/api/students');
       const data = await response.json();
       setStudents(data);
@@ -76,7 +75,7 @@ const MentorChatApp = () => {
           <ul>
             {students.map((student) => (
               <li
-                key={student.username} // Assuming each student has a unique 'username'
+                key={student.username}
                 onClick={() => setCurrentChat(student.username)} // Set chat with selected student
                 className="cursor-pointer hover:text-blue-500"
               >
