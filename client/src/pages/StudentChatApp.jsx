@@ -10,27 +10,22 @@ const StudentChatApp = ({ mentorId }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [mentorInfo, setMentorInfo] = useState(null);
-  const [mentorError, setMentorError] = useState(null);
   const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
     // Fetch mentor info
     fetch(`${BACKEND_URL}/mentor/${mentorId}`)
-  .then(async (response) => {
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Error: ${response.status} - ${errorText}`);
-      throw new Error(`Error fetching mentor info: ${response.status} - ${errorText}`);
+  .then((response) => response.text())  // Get the raw text response
+  .then((text) => {
+    if (text.startsWith('<!DOCTYPE html>')) {
+      // If the response is HTML (likely an error page), log the text and throw an error
+      throw new Error('Received HTML instead of JSON. This might be an error page.');
     }
-    return response.json();
+    return JSON.parse(text);  // Manually parse JSON if not HTML
   })
-  .then((data) => {
-    setMentorInfo(data);
-    setMentorError(null); // Clear any previous errors
-  })
+  .then((data) => setMentorInfo(data))
   .catch((error) => {
-    console.error('Error fetching mentor info:', error);
-    setMentorError('Failed to load mentor information.');
+    console.error('Error fetching mentor info:', error.message);
   });
 
 
@@ -55,7 +50,7 @@ const StudentChatApp = ({ mentorId }) => {
     }
   };
 
-  if (!currentUser) return <p>Loading user information...</p>;
+  if (!currentUser || !mentorInfo) return <p>Loading...</p>;
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
@@ -74,23 +69,17 @@ const StudentChatApp = ({ mentorId }) => {
           </div>
         </div>
 
-        {mentorError ? (
-          <p className="text-red-500">{mentorError}</p>
-        ) : mentorInfo ? (
-          <div className="flex items-center mb-4">
-            <img
-              src={mentorInfo?.profilePicture || '/placeholder.png'}
-              alt="Mentor Profile"
-              className="w-12 h-12 rounded-full mr-4"
-            />
-            <div>
-              <p className="font-semibold">{mentorInfo?.username}</p>
-              <p>{mentorInfo?.email}</p>
-            </div>
+        <div className="flex items-center mb-4">
+          <img
+            src={mentorInfo?.profilePicture || '/placeholder.png'}
+            alt="Mentor Profile"
+            className="w-12 h-12 rounded-full mr-4"
+          />
+          <div>
+            <p className="font-semibold">{mentorInfo?.username || 'Loading...'}</p>
+            <p>{mentorInfo?.email || 'Loading...'}</p>
           </div>
-        ) : (
-          <p>Loading mentor information...</p>
-        )}
+        </div>
 
         <div className="space-y-4 mb-4">
           <h3 className="font-semibold">Messages:</h3>
