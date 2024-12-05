@@ -13,7 +13,7 @@ const StudentChatApp = ({ mentorId }) => {
 
   useEffect(() => {
     // Fetch mentor info using relative URL
-    fetch(`/mentor/${mentorId}`)
+    fetch(`api/mentor/${mentorId}`)
       .then((response) => response.json())
       .then((data) => setMentorInfo(data))
       .catch((error) => console.error('Error fetching mentor info:', error));
