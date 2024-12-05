@@ -14,7 +14,7 @@ const StudentChatApp = ({ mentorId }) => {
   const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
-    // Fetch mentor info
+    // Fetch mentor information based on mentorId
     fetch(`${BACKEND_URL}/mentor/${mentorId}`)
       .then(async (response) => {
         if (!response.ok) {
@@ -24,24 +24,26 @@ const StudentChatApp = ({ mentorId }) => {
         return response.json();
       })
       .then((data) => {
-        setMentorInfo(data);
-        setMentorError(null); // Clear any previous errors
+        setMentorInfo(data); // Set the mentor info to the state
+        setMentorError(null); // Clear previous errors
       })
       .catch((error) => {
         console.error('Error fetching mentor info:', error);
         setMentorError('Failed to load mentor information.');
       });
-
-    // Listen for messages
+  
+    // Listen for new messages from the mentor
     socket.on('receiveMessage', (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
-
+  
+    // Cleanup the socket listener on component unmount
     return () => {
       socket.off('receiveMessage');
       socket.disconnect();
     };
   }, [mentorId]);
+  
 
   const handleSendMessage = () => {
     if (message.trim() && currentUser && mentorId) {
