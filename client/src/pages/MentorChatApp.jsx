@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
 
-const socket = io('http://localhost:10000');
+const socket = io('http://localhost:10000'); // Replace with your backend URL
 
 const MentorChatApp = () => {
   const [message, setMessage] = useState('');
@@ -56,37 +56,60 @@ const MentorChatApp = () => {
   };
 
   return (
-    <div>
-      <h3>Mentor Chat</h3>
-      <div>
-        <h4>Students</h4>
-        <ul>
-          {students.map((student) => (
-            <li key={student} onClick={() => setCurrentChat(student)}>
-              {student}
-            </li>
-          ))}
-        </ul>
-      </div>
-      {currentChat && (
-        <div>
-          <h4>Chat with {currentChat}</h4>
-          <div>
-            {messages.map((msg, index) => (
-              <div key={index}>
-                <strong>{msg.sender}:</strong> {msg.message}
-              </div>
+    <div className="flex justify-center items-center h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
+        <h2 className="text-2xl font-semibold mb-4">Mentor Chat</h2>
+
+        {/* Students List */}
+        <div className="mb-4">
+          <h3 className="font-semibold">Select a Student to Chat:</h3>
+          <ul>
+            {students.map((student) => (
+              <li
+                key={student}
+                onClick={() => setCurrentChat(student)}
+                className="cursor-pointer hover:text-blue-500"
+              >
+                {student}
+              </li>
             ))}
-          </div>
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type a message..."
-          />
-          <button onClick={handleSendMessage}>Send</button>
+          </ul>
         </div>
-      )}
+
+        {/* Current Chat Section */}
+        {currentChat && (
+          <div>
+            <h4 className="font-semibold mb-4">Chat with {currentChat}</h4>
+            <div className="space-y-4 mb-4">
+              {messages.map((msg, index) => (
+                <div key={index} className="flex items-start space-x-2">
+                  <strong className={`text-${msg.sender === currentUser.username ? 'green' : 'blue'}-500`}>
+                    {msg.sender}:
+                  </strong>
+                  <span className="text-gray-700">{msg.message}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Message Input */}
+            <div className="flex flex-col items-center space-y-4">
+              <input
+                type="text"
+                placeholder="Type a message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="p-2 border border-gray-300 rounded-lg w-full"
+              />
+              <button
+                onClick={handleSendMessage}
+                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

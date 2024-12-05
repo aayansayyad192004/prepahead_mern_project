@@ -109,6 +109,8 @@ const io = new socketIo(server, {
   },
 });
 
+let connectedUsers = [];
+
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
@@ -159,6 +161,7 @@ app.get('/api/messages', async (req, res) => {
     res.status(500).json({ error: 'Error fetching messages' });
   }
 });
+
 // Use existing routes
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
