@@ -14,31 +14,32 @@ const StudentChatApp = ({ mentorId }) => {
 
   useEffect(() => {
     // Fetch mentor info
-    fetch(`${BACKEND_URL}/mentor/${mentorId}`)
-  .then((response) => response.text())  // Get the raw text response
-  .then((text) => {
-    if (text.startsWith('<!DOCTYPE html>')) {
-      // If the response is HTML (likely an error page), log the text and throw an error
-      throw new Error('Received HTML instead of JSON. This might be an error page.');
-    }
-    return JSON.parse(text);  // Manually parse JSON if not HTML
-  })
-  .then((data) => setMentorInfo(data))
-  .catch((error) => {
-    console.error('Error fetching mentor info:', error.message);
-  });
-
-
-    // Listen for messages
-    socket.on('receiveMessage', (newMessage) => {
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-    });
-
-    return () => {
-      socket.off('receiveMessage');
-      socket.disconnect();
-    };
-  }, [mentorId]);
+    useEffect(() => {
+      // Fetch mentor info
+      fetch(`${BACKEND_URL}/api/mentors/${mentorId}`)
+        .then((response) => {
+          if (!response.ok) {
+            // If the response is not OK (status code not in the range 200-299)
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+          }
+          return response.json();  // Parse JSON if the response is valid
+        })
+        .then((data) => setMentorInfo(data))
+        .catch((error) => {
+          console.error('Error fetching mentor info:', error.message);
+        });
+    
+      // Listen for messages
+      socket.on('receiveMessage', (newMessage) => {
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+      });
+    
+      return () => {
+        socket.off('receiveMessage');
+        socket.disconnect();
+      };
+    }, [mentorId]);
+    
 
   const handleSendMessage = () => {
     if (message.trim() && currentUser && mentorId) {
