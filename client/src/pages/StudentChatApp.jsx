@@ -18,8 +18,7 @@ const StudentChatApp = ({ mentorId }) => {
       try {
         const res = await fetch(`${BACKEND_URL}/api/mentors/${mentorId}`);
         if (!res.ok) {
-          const errorText = await res.text(); // Get error response text
-          console.error('Server response:', errorText); // Log the response
+          console.error('Error response:', res.status, res.statusText);
           throw new Error('Failed to fetch mentor data');
         }
         const data = await res.json();
@@ -28,6 +27,7 @@ const StudentChatApp = ({ mentorId }) => {
         console.error('Error fetching mentor info:', error);
       }
     };
+    
 
     fetchMentorInfo(); // Call the async function
 
