@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
+import axios from 'axios';
 
-const socket = io('http://localhost:10000'); // Your backend URL
+const socket = io('http://localhost:10000');
 
 const StudentChatApp = ({ mentorId }) => {
   const [message, setMessage] = useState('');
@@ -18,11 +19,10 @@ const StudentChatApp = ({ mentorId }) => {
     // Fetch previous messages
     const fetchMessages = async () => {
       try {
-        const response = await fetch(
+        const response = await axios.get(
           `/api/messages?sender=${currentUser.username}&receiver=${mentorId}`
         );
-        const data = await response.json();
-        setMessages(data);
+        setMessages(response.data);
       } catch (error) {
         console.error('Error fetching messages:', error);
       }
@@ -82,7 +82,7 @@ const StudentChatApp = ({ mentorId }) => {
 
         {/* Messages Section */}
         <div className="space-y-4 mb-4">
-          <h3 className="font-semibold">Messages:</h3>
+          <h3 className="font-semibold">Messages with {mentorId}:</h3>
           <div className="space-y-2 h-64 overflow-y-auto">
             {messages.map((msg, index) => (
               <div 

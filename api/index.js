@@ -116,7 +116,7 @@ let connectedUsers = [];
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
-  // New: Add user registration
+  // Add user registration
   socket.on('registerUser', (userData) => {
     const existingUser = connectedUsers.find(user => user.username === userData.username);
     if (!existingUser) {
@@ -130,7 +130,7 @@ io.on('connection', (socket) => {
 
   socket.on('sendMessage', async (messageData) => {
     try {
-      // Validate message data
+      // Validate message data thoroughly
       if (!messageData.sender || !messageData.receiver || !messageData.message) {
         console.error('Invalid message data:', messageData);
         return;
@@ -143,7 +143,17 @@ io.on('connection', (socket) => {
         message: messageData.message
       });
 
-      await newMessage.save();
+      try {
+        await newMessage.save();
+        console.log('Message saved successfully:', newMessage);
+      } catch (saveError) {
+        console.error('Error saving message to database:', saveError);
+        socket.emit('messageError', { 
+          error: 'Failed to save message', 
+          details: saveError.message 
+        });
+        return;
+      }
 
       // Find the recipient's socket
       const recipientSocket = connectedUsers.find(
@@ -159,8 +169,8 @@ io.on('connection', (socket) => {
       socket.emit('messageAck', { ...messageData, status: 'sent' });
 
     } catch (error) {
-      console.error('Error in sendMessage:', error);
-      socket.emit('messageError', { error: 'Failed to send message' });
+      console.error('Unexpected error in sendMessage:', error);
+      socket.emit('messageError', { error: 'Unexpected error occurred' });
     }
   });
 
@@ -170,21 +180,47 @@ io.on('connection', (socket) => {
   });
 });
 
-// Existing message retrieval route remains the same
-app.get('/api/messages', async (req, res) => {
-  const { sender, receiver } = req.query;
-
+// Add a route to fetch students for a mentor
+app.get('/api/mentors/students', async (req, res) => {
   try {
-    const messages = await Message.find({
-      $or: [
-        { sender, receiver },
-        { sender: receiver, receiver: sender },
-      ],
-    }).sort({ timestamp: 1 });
+    const { mentorUsername } = req.query;
 
-    res.status(200).json(messages);
+    // Find unique students who have sent messages to this mentor
+    const students = await Message.aggregate([
+      {
+        $match: { 
+          receiver: mentorUsername 
+        }
+      },
+      {
+        $group: {
+          _id: '$sender'
+        }
+      },
+      {
+        $lookup: {
+          from: 'users', // Ensure this matches your users collection name
+          localField: '_id',
+          foreignField: 'username',
+          as: 'studentDetails'
+        }
+      },
+      {
+        $unwind: '$studentDetails'
+      },
+      {
+        $project: {
+          username: '$studentDetails.username',
+          email: '$studentDetails.email',
+          profilePicture: '$studentDetails.profilePicture'
+        }
+      }
+    ]);
+
+    res.status(200).json(students);
   } catch (error) {
-    res.status(500).json({ error: 'Error fetching messages' });
+    console.error('Error fetching students:', error);
+    res.status(500).json({ error: 'Failed to fetch students' });
   }
 });
 // Use existing routes

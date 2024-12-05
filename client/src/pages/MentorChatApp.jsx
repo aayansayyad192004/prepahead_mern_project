@@ -1,16 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
+import axios from 'axios';
 
-const socket = io('http://localhost:10000'); // Your backend URL
+const socket = io('http://localhost:10000');
 
 const MentorChatApp = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const { currentUser } = useSelector((state) => state.user);
 
-  const [students, setStudents] = useState(['student1', 'student2']); // Replace with actual logic
+  const [students, setStudents] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
+
+  // Fetch students who have messaged this mentor
+  useEffect(() => {
+    const fetchStudents = async () => {
+      if (currentUser) {
+        try {
+          const response = await axios.get(`/api/mentors/students?mentorUsername=${currentUser.username}`);
+          setStudents(response.data);
+        } catch (error) {
+          console.error('Error fetching students:', error);
+        }
+      }
+    };
+
+    fetchStudents();
+  }, [currentUser]);
 
   useEffect(() => {
     // Register user
@@ -18,21 +35,14 @@ const MentorChatApp = () => {
       socket.emit('registerUser', { username: currentUser.username });
     }
 
-    // Fetch students (you'll need to implement this)
-    const fetchStudents = async () => {
-      // Implement logic to fetch students
-    };
-    fetchStudents();
-
     if (currentChat) {
       // Fetch previous messages
       const fetchMessages = async () => {
         try {
-          const response = await fetch(
-            `/api/messages?sender=${currentUser.username}&receiver=${currentChat}`
+          const response = await axios.get(
+            `/api/messages?sender=${currentChat}&receiver=${currentUser.username}`
           );
-          const data = await response.json();
-          setMessages(data);
+          setMessages(response.data);
         } catch (error) {
           console.error('Error fetching messages:', error);
         }
@@ -80,13 +90,23 @@ const MentorChatApp = () => {
           <ul>
             {students.map((student) => (
               <li
-                key={student}
-                onClick={() => setCurrentChat(student)}
-                className={`cursor-pointer hover:text-blue-500 p-2 ${
-                  currentChat === student ? 'bg-blue-100' : ''
+                key={student.username}
+                onClick={() => setCurrentChat(student.username)}
+                className={`cursor-pointer hover:text-blue-500 p-2 flex items-center ${
+                  currentChat === student.username ? 'bg-blue-100' : ''
                 }`}
               >
-                {student}
+                {student.profilePicture && (
+                  <img 
+                    src={student.profilePicture} 
+                    alt={student.username} 
+                    className="w-8 h-8 rounded-full mr-2" 
+                  />
+                )}
+                <div>
+                  <span>{student.username}</span>
+                  <p className="text-xs text-gray-500">{student.email}</p>
+                </div>
               </li>
             ))}
           </ul>
