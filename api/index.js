@@ -116,48 +116,61 @@ let connectedUsers = [];
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
-  socket.on('sendMessage', async (messageData) => {
-    const { message, userId, mentorId, studentId } = messageData;
-  
-    try {
-      // Ensure that messageData contains valid sender and receiver
-      if (!mentorId && !studentId) {
-        console.error('Error: Missing mentorId or studentId');
-        return;
-      }
-  
-      // Save the message to MongoDB
-      const newMessage = new Message({
-        sender: userId,
-        receiver: mentorId || studentId,
-        message,
+  // New: Add user registration
+  socket.on('registerUser', (userData) => {
+    const existingUser = connectedUsers.find(user => user.username === userData.username);
+    if (!existingUser) {
+      connectedUsers.push({
+        username: userData.username,
+        socketId: socket.id
       });
-  
-      await newMessage.save(); // Save message to MongoDB
-  
-      // Find the recipient's socket ID
-      const recipient = connectedUsers.find(
-        (user) => user.username === mentorId || user.username === studentId
-      );
-  
-      if (recipient) {
-        io.to(recipient.socketId).emit('receiveMessage', messageData); // Send message to recipient
-      } else {
-        console.log('Error: Recipient not connected');
-      }
-    } catch (error) {
-      console.error('Error saving message:', error);
+      console.log('User registered:', userData.username);
     }
   });
-  
+
+  socket.on('sendMessage', async (messageData) => {
+    try {
+      // Validate message data
+      if (!messageData.sender || !messageData.receiver || !messageData.message) {
+        console.error('Invalid message data:', messageData);
+        return;
+      }
+
+      // Save the message to MongoDB
+      const newMessage = new Message({
+        sender: messageData.sender,
+        receiver: messageData.receiver,
+        message: messageData.message
+      });
+
+      await newMessage.save();
+
+      // Find the recipient's socket
+      const recipientSocket = connectedUsers.find(
+        user => user.username === messageData.receiver
+      );
+
+      // Emit to recipient if connected
+      if (recipientSocket) {
+        io.to(recipientSocket.socketId).emit('receiveMessage', messageData);
+      }
+
+      // Always emit back to sender for immediate UI update
+      socket.emit('messageAck', { ...messageData, status: 'sent' });
+
+    } catch (error) {
+      console.error('Error in sendMessage:', error);
+      socket.emit('messageError', { error: 'Failed to send message' });
+    }
+  });
 
   socket.on('disconnect', () => {
-    connectedUsers = connectedUsers.filter((user) => user.socketId !== socket.id);
+    connectedUsers = connectedUsers.filter(user => user.socketId !== socket.id);
     console.log('A user disconnected');
   });
-  
 });
 
+// Existing message retrieval route remains the same
 app.get('/api/messages', async (req, res) => {
   const { sender, receiver } = req.query;
 

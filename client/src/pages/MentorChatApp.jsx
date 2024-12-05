@@ -2,44 +2,49 @@ import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
 
-const socket = io('http://localhost:10000'); // Replace with your backend URL
+const socket = io('http://localhost:10000'); // Your backend URL
 
 const MentorChatApp = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const { currentUser } = useSelector((state) => state.user);
 
-  const [students, setStudents] = useState([]); // Replace with logic to fetch actual students
-
+  const [students, setStudents] = useState(['student1', 'student2']); // Replace with actual logic
   const [currentChat, setCurrentChat] = useState(null);
 
   useEffect(() => {
-    // Fetch student list (replace with actual data fetching logic)
-    const fetchStudents = async () => {
-      const response = await fetch('http://localhost:10000/api/students');
-      const data = await response.json();
-      setStudents(data);
-    };
+    // Register user
+    if (currentUser) {
+      socket.emit('registerUser', { username: currentUser.username });
+    }
 
+    // Fetch students (you'll need to implement this)
+    const fetchStudents = async () => {
+      // Implement logic to fetch students
+    };
     fetchStudents();
 
     if (currentChat) {
       // Fetch previous messages
       const fetchMessages = async () => {
-        const response = await fetch(
-          `http://localhost:10000/api/messages?sender=${currentUser.username}&receiver=${currentChat}`
-        );
-        const data = await response.json();
-        setMessages(data);
+        try {
+          const response = await fetch(
+            `/api/messages?sender=${currentUser.username}&receiver=${currentChat}`
+          );
+          const data = await response.json();
+          setMessages(data);
+        } catch (error) {
+          console.error('Error fetching messages:', error);
+        }
       };
-
       fetchMessages();
     }
 
+    // Listen for messages
     socket.on('receiveMessage', (newMessage) => {
       if (
-        (newMessage.sender === currentUser.username && newMessage.receiver === currentChat) ||
-        (newMessage.sender === currentChat && newMessage.receiver === currentUser.username)
+        (newMessage.sender === currentChat && newMessage.receiver === currentUser.username) ||
+        (newMessage.sender === currentUser.username && newMessage.receiver === currentChat)
       ) {
         setMessages((prev) => [...prev, newMessage]);
       }
@@ -51,11 +56,11 @@ const MentorChatApp = () => {
   }, [currentUser, currentChat]);
 
   const handleSendMessage = () => {
-    if (message.trim() && currentUser) {
+    if (message.trim() && currentUser && currentChat) {
       const messageData = {
         sender: currentUser.username,
         receiver: currentChat,
-        message,
+        message
       };
 
       socket.emit('sendMessage', messageData);
@@ -75,11 +80,13 @@ const MentorChatApp = () => {
           <ul>
             {students.map((student) => (
               <li
-                key={student.username}
-                onClick={() => setCurrentChat(student.username)} // Set chat with selected student
-                className="cursor-pointer hover:text-blue-500"
+                key={student}
+                onClick={() => setCurrentChat(student)}
+                className={`cursor-pointer hover:text-blue-500 p-2 ${
+                  currentChat === student ? 'bg-blue-100' : ''
+                }`}
               >
-                {student.username} {/* Display student name */}
+                {student}
               </li>
             ))}
           </ul>
@@ -89,13 +96,21 @@ const MentorChatApp = () => {
         {currentChat && (
           <div>
             <h4 className="font-semibold mb-4">Chat with {currentChat}</h4>
-            <div className="space-y-4 mb-4">
+            <div className="space-y-4 mb-4 h-64 overflow-y-auto">
               {messages.map((msg, index) => (
-                <div key={index} className="flex items-start space-x-2">
-                  <strong className={`text-${msg.sender === currentUser.username ? 'green' : 'blue'}-500`}>
-                    {msg.sender}:
-                  </strong>
-                  <span className="text-gray-700">{msg.message}</span>
+                <div 
+                  key={index} 
+                  className={`flex items-start space-x-2 ${
+                    msg.sender === currentUser.username ? 'justify-end' : 'justify-start'
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg ${
+                    msg.sender === currentUser.username 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gray-200 text-black'
+                  }`}>
+                    {msg.message}
+                  </div>
                 </div>
               ))}
             </div>
@@ -108,6 +123,7 @@ const MentorChatApp = () => {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="p-2 border border-gray-300 rounded-lg w-full"
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               />
               <button
                 onClick={handleSendMessage}
