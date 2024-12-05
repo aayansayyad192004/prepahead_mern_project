@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import io from 'socket.io-client';
+import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  query, 
+  where, 
+  orderBy, 
+  onSnapshot 
+} from 'firebase/firestore';
 import { useSelector } from 'react-redux';
+import { app } from '../firebase';
 
-// Connect to the current domain automatically
-const socket = io();
+const db = getFirestore(app);
 
 const StudentChatApp = ({ mentorId }) => {
   const [message, setMessage] = useState('');
@@ -12,30 +20,72 @@ const StudentChatApp = ({ mentorId }) => {
   const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
-    // Fetch mentor info using relative URL
-    fetch(`api/mentor/${mentorId}`)
-      .then((response) => response.json())
-      .then((data) => setMentorInfo(data))
-      .catch((error) => console.error('Error fetching mentor info:', error));
+    // Fetch mentor info
+    const fetchMentorInfo = async () => {
+      try {
+        const mentorsRef = collection(db, 'users');
+        const q = query(mentorsRef, where('username', '==', mentorId));
+        
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+          const mentors = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setMentorInfo(mentors[0]);
+        });
+
+        return () => unsubscribe();
+      } catch (error) {
+        console.error('Error fetching mentor info:', error);
+      }
+    };
+
+    fetchMentorInfo();
 
     // Listen for messages
-    socket.on('receiveMessage', (newMessage) => {
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-    });
+    if (currentUser && mentorId) {
+      const chatRoomId = [currentUser.username, mentorId]
+        .sort()
+        .join('_');
 
-    return () => {
-      socket.off('receiveMessage');
-      socket.disconnect();
-    };
-  }, [mentorId]);
+      const messagesRef = collection(db, 'messages');
+      const q = query(
+        messagesRef, 
+        where('chatRoomId', '==', chatRoomId),
+        orderBy('timestamp', 'asc')
+      );
 
-  const handleSendMessage = () => {
-    if (message.trim() && currentUser && mentorId) {
-      const messageData = { message, userId: currentUser.username, mentorId };
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const fetchedMessages = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setMessages(fetchedMessages);
+      });
 
-      socket.emit('sendMessage', messageData);
-      setMessages((prevMessages) => [...prevMessages, messageData]);
+      return () => unsubscribe();
+    }
+  }, [currentUser, mentorId]);
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !currentUser || !mentorId) return;
+
+    const chatRoomId = [currentUser.username, mentorId]
+      .sort()
+      .join('_');
+
+    try {
+      await addDoc(collection(db, 'messages'), {
+        chatRoomId,
+        senderId: currentUser.username,
+        text: message,
+        timestamp: new Date(),
+        senderType: 'student'
+      });
+
       setMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
     }
   };
 
@@ -70,19 +120,21 @@ const StudentChatApp = ({ mentorId }) => {
           </div>
         </div>
 
-        <div className="space-y-4 mb-4">
+        <div className="space-y-4 mb-4 h-64 overflow-y-auto">
           <h3 className="font-semibold">Messages:</h3>
           <div className="space-y-2">
             {messages.map((msg, index) => (
               <div key={index} className="flex items-start space-x-2">
                 <strong
                   className={`${
-                    msg.userId === currentUser.username ? 'text-green-500' : 'text-blue-500'
+                    msg.senderId === currentUser.username 
+                      ? 'text-green-500' 
+                      : 'text-blue-500'
                   }`}
                 >
-                  {msg.userId}:
+                  {msg.senderId}:
                 </strong>
-                <span className="text-gray-700">{msg.message}</span>
+                <span className="text-gray-700">{msg.text}</span>
               </div>
             ))}
           </div>
