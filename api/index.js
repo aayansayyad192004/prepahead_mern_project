@@ -118,33 +118,44 @@ io.on('connection', (socket) => {
 
   socket.on('sendMessage', async (messageData) => {
     const { message, userId, mentorId, studentId } = messageData;
-
+  
     try {
+      // Ensure that messageData contains valid sender and receiver
+      if (!mentorId && !studentId) {
+        console.error('Error: Missing mentorId or studentId');
+        return;
+      }
+  
       // Save the message to MongoDB
       const newMessage = new Message({
         sender: userId,
         receiver: mentorId || studentId,
         message,
       });
-      await newMessage.save();
-
+  
+      await newMessage.save(); // Save message to MongoDB
+  
       // Find the recipient's socket ID
       const recipient = connectedUsers.find(
         (user) => user.username === mentorId || user.username === studentId
       );
-
+  
       if (recipient) {
-        io.to(recipient.socketId).emit('receiveMessage', messageData);
+        io.to(recipient.socketId).emit('receiveMessage', messageData); // Send message to recipient
+      } else {
+        console.log('Error: Recipient not connected');
       }
     } catch (error) {
       console.error('Error saving message:', error);
     }
   });
+  
 
   socket.on('disconnect', () => {
     connectedUsers = connectedUsers.filter((user) => user.socketId !== socket.id);
     console.log('A user disconnected');
   });
+  
 });
 
 app.get('/api/messages', async (req, res) => {
