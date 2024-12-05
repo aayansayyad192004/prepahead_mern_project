@@ -9,11 +9,21 @@ const MentorChatApp = () => {
   const [messages, setMessages] = useState([]);
   const { currentUser } = useSelector((state) => state.user);
 
-  const [students, setStudents] = useState(['student1', 'student2']); // Replace with actual logic
+  const [students, setStudents] = useState([]); // Replace with logic to fetch actual students
 
   const [currentChat, setCurrentChat] = useState(null);
 
   useEffect(() => {
+    // Fetch student list (replace with actual data fetching logic)
+    const fetchStudents = async () => {
+      // Simulate fetching student data (you should replace this with real API call)
+      const response = await fetch('http://localhost:10000/api/students');
+      const data = await response.json();
+      setStudents(data);
+    };
+
+    fetchStudents();
+
     if (currentChat) {
       // Fetch previous messages
       const fetchMessages = async () => {
@@ -66,11 +76,11 @@ const MentorChatApp = () => {
           <ul>
             {students.map((student) => (
               <li
-                key={student}
-                onClick={() => setCurrentChat(student)}
+                key={student.username} // Assuming each student has a unique 'username'
+                onClick={() => setCurrentChat(student.username)} // Set chat with selected student
                 className="cursor-pointer hover:text-blue-500"
               >
-                {student}
+                {student.username} {/* Display student name */}
               </li>
             ))}
           </ul>
