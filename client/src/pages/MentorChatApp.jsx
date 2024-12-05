@@ -88,19 +88,17 @@ const MentorChatApp = () => {
         <div className="mb-4">
           <h3 className="font-semibold">Select a Student to Chat:</h3>
           <ul>
-            {students.map((student) => (
+            {Array.isArray(students) && students.map((student) => (
               <li
                 key={student.username}
                 onClick={() => setCurrentChat(student.username)}
-                className={`cursor-pointer hover:text-blue-500 p-2 flex items-center ${
-                  currentChat === student.username ? 'bg-blue-100' : ''
-                }`}
+                className={`cursor-pointer hover:text-blue-500 p-2 flex items-center ${currentChat === student.username ? 'bg-blue-100' : ''}`}
               >
                 {student.profilePicture && (
-                  <img 
-                    src={student.profilePicture} 
-                    alt={student.username} 
-                    className="w-8 h-8 rounded-full mr-2" 
+                  <img
+                    src={student.profilePicture}
+                    alt={student.username}
+                    className="w-8 h-8 rounded-full mr-2"
                   />
                 )}
                 <div>
@@ -117,16 +115,16 @@ const MentorChatApp = () => {
           <div>
             <h4 className="font-semibold mb-4">Chat with {currentChat}</h4>
             <div className="space-y-4 mb-4 h-64 overflow-y-auto">
-              {messages.map((msg, index) => (
-                <div 
-                  key={index} 
+              {Array.isArray(messages) && messages.map((msg, index) => (
+                <div
+                  key={index}
                   className={`flex items-start space-x-2 ${
                     msg.sender === currentUser.username ? 'justify-end' : 'justify-start'
                   }`}
                 >
                   <div className={`p-2 rounded-lg ${
-                    msg.sender === currentUser.username 
-                      ? 'bg-blue-500 text-white' 
+                    msg.sender === currentUser.username
+                      ? 'bg-blue-500 text-white'
                       : 'bg-gray-200 text-black'
                   }`}>
                     {msg.message}
