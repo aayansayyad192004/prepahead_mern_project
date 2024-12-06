@@ -5,6 +5,7 @@ import userRoutes from './routes/user.route.js';
 import authRoutes from './routes/auth.route.js';
 import mentorRoutes from './routes/mentor.route.js';
 import resultRoutes from './routes/results.route.js';
+import studentRoutes from './routes/student.route.js'; 
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import axios from 'axios';
@@ -178,6 +179,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/mentors', mentorRoutes);
 app.use('/api', resultRoutes);
+app.use('/api/student', studentRoutes);
 
 // Serve the React client (for production)
 app.get('*', (req, res) => {
