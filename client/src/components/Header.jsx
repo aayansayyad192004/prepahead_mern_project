@@ -9,7 +9,7 @@ export default function Header() {
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem('theme') === 'dark' || false
   );
-
+  const [studentId, setStudentId] = useState(null); // Example of storing studentId
   const navigate = useNavigate();
 
   const toggleDarkMode = () => {
@@ -42,6 +42,22 @@ export default function Header() {
     }
   }, [darkMode]);
 
+  // Example useEffect to fetch student list (for mentor chat feature)
+  useEffect(() => {
+    if (currentUser && currentUser.role === 'mentor') {
+      // Fetch student list dynamically (or get from global state)
+      fetch('/api/students')
+        .then((response) => response.json())
+        .then((data) => {
+          // Example: Set the first student as the default for demo
+          if (data.length > 0) {
+            setStudentId(data[0].id); // Assume each student has an 'id'
+          }
+        })
+        .catch((error) => console.error('Error fetching students:', error));
+    }
+  }, [currentUser]);
+
   return (
     <header className="bg-orange-400 dark:bg-gray-900 shadow-md">
       <div className="flex justify-between items-center max-w-7xl mx-auto p-3">
@@ -72,15 +88,14 @@ export default function Header() {
               Home
             </li>
           </Link>
-          {currentUser && currentUser.role === 'mentor' && (
+          {currentUser && currentUser.role === 'mentor' && studentId && (
             <Link to={`/mentor-chat/${studentId}`}>
-            <li className="hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline">
-              <FaEnvelope className="text-slate-600 dark:text-gray-300" />
-            </li>
-          </Link>
-          
+              <li className="hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline">
+                <FaEnvelope className="text-slate-600 dark:text-gray-300" />
+              </li>
+            </Link>
           )}
-           {currentUser && currentUser.role === 'student' && (
+          {currentUser && currentUser.role === 'student' && (
             <Link to="/dashboard">
               <li className="hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline">
                 Dashboard
