@@ -18,8 +18,9 @@ import PaymentPage from "./pages/PaymentPage"; // Correct import for PaymentPage
 import OverallDashboard from './pages/OverallDashboard';
 import ConnectNow from './pages/ConnectNow';
 import StudentVideoCall from './pages/StudentVideoCall';
-import ConversationList from "./pages/ConversationList";
-import MessageList from "./pages/MessageList";
+import StudentChatApp from './components/StudentChatApp'; // Assuming your component is here
+import MentorChatApp from './components/MentorChatApp';
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -46,8 +47,8 @@ export default function App() {
           <Route path="/roadmap" element={<Roadmap />} />
           <Route path="/MentorshipPage" element={<MentorshipPage />} />
           <Route path="/connectnow/:mentorId" element={<ConnectNow />} />
-          <Route path="/conversation-list" element={<ConversationList />} />
-          <Route path="/messages/:conversationID" element={<MessageList/>} />
+          <Route path="/student-chat/:mentorId" element={<StudentChatApp />} />
+          <Route path="/mentor-chat/:studentId" element={<MentorChatApp />} />
           </Route>
            {/* ConnectNow Page Route with mentorId as param */}
 
