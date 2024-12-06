@@ -1,16 +1,33 @@
+// StudentChatApp.js
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 
 const socket = io('http://localhost:10000'); // Replace with your backend URL
 
-const StudentChatApp = ({ mentorId }) => {
+const StudentChatApp = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
+  const [mentor, setMentor] = useState(null);
   const { currentUser } = useSelector((state) => state.user);
+  const { mentorId } = useParams(); // Get the mentorId from the URL
 
   useEffect(() => {
-    // Listen for messages from mentor
+    // Fetch mentor information
+    const fetchMentorInfo = async () => {
+      try {
+        const response = await fetch(`http://localhost:10000/api/mentors/${mentorId}`);
+        const data = await response.json();
+        setMentor(data);
+      } catch (error) {
+        console.error('Error fetching mentor:', error);
+      }
+    };
+
+    fetchMentorInfo();
+
+    // Listen for messages from the mentor
     socket.on('receiveMessage', (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
@@ -18,14 +35,14 @@ const StudentChatApp = ({ mentorId }) => {
     return () => {
       socket.off('receiveMessage');
     };
-  }, []);
+  }, [mentorId]);
 
   const handleSendMessage = () => {
     if (message.trim() && currentUser) {
-      const messageData = { 
-        message, 
-        userId: currentUser.username, 
-        mentorId
+      const messageData = {
+        message,
+        userId: currentUser.username,
+        mentorId,
       };
 
       socket.emit('sendMessage', messageData); // Emit message to backend
@@ -34,19 +51,19 @@ const StudentChatApp = ({ mentorId }) => {
     }
   };
 
-  if (!currentUser) return <p>Loading...</p>;
+  if (!currentUser || !mentor) return <p>Loading...</p>;
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-        <h2 className="text-2xl font-semibold mb-4">Welcome, {currentUser.username}</h2>
+        <h2 className="text-2xl font-semibold mb-4">Chat with Mentor: {mentor.username}</h2>
 
-        {/* Displaying Student Profile with Image */}
+        {/* Displaying Mentor Profile */}
         <div className="flex items-center mb-4">
-          <img src={currentUser.profilePicture} alt="Student Profile" className="w-12 h-12 rounded-full mr-4" />
+          <img src={mentor.profilePicture} alt="Mentor Profile" className="w-12 h-12 rounded-full mr-4" />
           <div>
-            <p className="font-semibold">{currentUser.username}</p>
-            <p>{currentUser.email}</p>
+            <p className="font-semibold">{mentor.username}</p>
+            <p>{mentor.email}</p>
           </div>
         </div>
 
