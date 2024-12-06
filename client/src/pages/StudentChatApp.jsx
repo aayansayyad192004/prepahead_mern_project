@@ -1,4 +1,3 @@
-// StudentChatApp.js
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
@@ -11,15 +10,22 @@ const StudentChatApp = () => {
   const [messages, setMessages] = useState([]);
   const [mentor, setMentor] = useState(null);
   const { currentUser } = useSelector((state) => state.user);
-  const { mentorId } = useParams(); // Get the mentorId from the URL
+  const { mentorId } = useParams(); // Extract mentorId from URL
 
   useEffect(() => {
-    // Fetch mentor information
     const fetchMentorInfo = async () => {
       try {
         const response = await fetch(`http://localhost:10000/api/mentors/${mentorId}`);
-        const data = await response.json();
-        setMentor(data);
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data = await response.json();
+          setMentor(data);
+        } else {
+          throw new Error('Invalid response format: Expected JSON');
+        }
       } catch (error) {
         console.error('Error fetching mentor:', error);
       }
@@ -27,7 +33,6 @@ const StudentChatApp = () => {
 
     fetchMentorInfo();
 
-    // Listen for messages from the mentor
     socket.on('receiveMessage', (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
@@ -51,14 +56,14 @@ const StudentChatApp = () => {
     }
   };
 
-  if (!currentUser || !mentor) return <p>Loading...</p>;
+  if (!currentUser || !mentor) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
         <h2 className="text-2xl font-semibold mb-4">Chat with Mentor: {mentor.username}</h2>
-
-        {/* Displaying Mentor Profile */}
         <div className="flex items-center mb-4">
           <img src={mentor.profilePicture} alt="Mentor Profile" className="w-12 h-12 rounded-full mr-4" />
           <div>
@@ -67,7 +72,6 @@ const StudentChatApp = () => {
           </div>
         </div>
 
-        {/* Messages Section */}
         <div className="space-y-4 mb-4">
           <h3 className="font-semibold">Messages:</h3>
           <div className="space-y-2">
@@ -82,7 +86,6 @@ const StudentChatApp = () => {
           </div>
         </div>
 
-        {/* Message Input */}
         <div className="flex flex-col items-center space-y-4">
           <input
             type="text"

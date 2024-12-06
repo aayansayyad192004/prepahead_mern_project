@@ -1,4 +1,3 @@
-// MentorChatApp.js
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
@@ -19,10 +18,15 @@ const MentorChatApp = () => {
       try {
         const response = await fetch(`http://localhost:10000/api/students/${currentUser._id}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch students');
+          throw new Error(`Error: ${response.status} - ${response.statusText}`);
         }
-        const data = await response.json();
-        setStudents(data);
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data = await response.json();
+          setStudents(data);
+        } else {
+          throw new Error('Invalid response format: Expected JSON');
+        }
       } catch (error) {
         console.error('Error fetching students:', error);
       }
@@ -30,13 +34,15 @@ const MentorChatApp = () => {
 
     fetchStudents();
 
-    // Fetch messages when currentChat changes
     if (currentChat) {
       const fetchMessages = async () => {
         try {
           const response = await fetch(
             `http://localhost:10000/api/messages?sender=${currentUser.username}&receiver=${currentChat}`
           );
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+          }
           const data = await response.json();
           setMessages(data);
         } catch (error) {
@@ -79,8 +85,6 @@ const MentorChatApp = () => {
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
         <h2 className="text-2xl font-semibold mb-4">Mentor Chat</h2>
-
-        {/* Students List */}
         <div className="mb-4">
           <h3 className="font-semibold">Select a Student to Chat:</h3>
           <ul>
@@ -96,7 +100,6 @@ const MentorChatApp = () => {
           </ul>
         </div>
 
-        {/* Current Chat Section */}
         {currentChat && (
           <div>
             <h4 className="font-semibold mb-4">Chat with {currentChat}</h4>
@@ -111,7 +114,6 @@ const MentorChatApp = () => {
               ))}
             </div>
 
-            {/* Message Input */}
             <div className="flex flex-col items-center space-y-4">
               <input
                 type="text"
