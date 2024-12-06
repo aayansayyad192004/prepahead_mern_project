@@ -9,14 +9,19 @@ const MentorChatApp = () => {
   const [messages, setMessages] = useState([]);
   const { currentUser } = useSelector((state) => state.user);
 
-  const [students, setStudents] = useState([]); // Replace with logic to fetch actual students
+  const [students, setStudents] = useState([]); // List of students
   const [currentChat, setCurrentChat] = useState(null); // Current student being chatted with
 
+  // Fetch students associated with the current mentor
   useEffect(() => {
-    // Fetch students (you can replace this with actual logic to get students)
     const fetchStudents = async () => {
+      if (!currentUser) return;
+
       try {
-        const response = await fetch('http://localhost:10000/api/students'); // Replace with the correct API endpoint
+        const response = await fetch(`http://localhost:10000/api/students/${currentUser._id}`); // Fetch students by mentorId
+        if (!response.ok) {
+          throw new Error('Failed to fetch students');
+        }
         const data = await response.json();
         setStudents(data); // Set the fetched students
       } catch (error) {
@@ -24,7 +29,7 @@ const MentorChatApp = () => {
       }
     };
 
-    fetchStudents(); // Fetch all students when the component mounts
+    fetchStudents(); // Fetch students when the component mounts
 
     if (currentChat) {
       // Fetch previous messages when currentChat changes
