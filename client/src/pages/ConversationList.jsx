@@ -6,9 +6,9 @@ const ConversationList = ({ mentorId, onSelectConversation }) => {
 
   const appID = import.meta.env.VITE_ZEGO_APP_ID;
   const appSign = import.meta.env.VITE_ZEGO_APP_SIGN_KEY;
-  const serverUrl = import.meta.env.VITE_ZEGO_SERVER_URL;
+  const serverSecret = import.meta.env.VITE_ZEGO_SERVER_SECRET_KEY; // Use serverSecret
 
-  const zp = ZegoUIKitPrebuilt.create(appID, appSign, serverUrl);
+  const zp = ZegoUIKitPrebuilt.create(appID, appSign, serverSecret); // Adjust to use serverSecret
 
   useEffect(() => {
     const fetchConversations = async () => {

@@ -5,11 +5,11 @@ const MessageList = ({ conversationID, mentor }) => {
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState("");
 
-  const appID = import.meta.env.VITE_ZEGO_APP_ID;
-  const appSign = import.meta.env.VITE_ZEGO_APP_SIGN_KEY;
-  const serverUrl = import.meta.env.VITE_ZEGO_SERVER_URL;
+  const appID = import.meta.env.VITE_CHAT_ZEGO_APP_ID;
+  const appSign = import.meta.env.VITE_CHAT_ZEGO_APP_SIGN_KEY;
+  const serverSecret = import.meta.env.VITE_CHAT_ZEGO_SERVER_SECRET_KEY; // Use serverSecret
 
-  const zp = ZegoUIKitPrebuilt.create(appID, appSign, serverUrl);
+  const zp = ZegoUIKitPrebuilt.create(appID, appSign, serverSecret); // Adjust to use serverSecret
 
   useEffect(() => {
     const fetchMessages = async () => {
