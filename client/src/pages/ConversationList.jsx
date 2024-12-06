@@ -1,42 +1,37 @@
 import React, { useState, useEffect } from "react";
+import { useHistory } from "react-router-dom";
 
 const ConversationList = () => {
   const [conversations, setConversations] = useState([]);
-  const [error, setError] = useState(null); // State to store error message
+  const [error, setError] = useState(null);
+  const history = useHistory();
 
+  // Fetch conversations dynamically from the backend
   useEffect(() => {
     const fetchConversations = async () => {
       try {
-        const response = await fetch('/api/conversations'); // Replace with actual endpoint
-        
-        // Check if the response is successful
+        const response = await fetch('/api/conversations');
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        // Check if the response is JSON
-        const contentType = response.headers.get("Content-Type");
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new Error('Expected JSON but got: ' + contentType);
         }
 
         const data = await response.json();
         setConversations(data);
       } catch (error) {
-        setError(error.message); // Set error message if something goes wrong
+        setError(error.message);
         console.error("Error fetching conversations:", error);
       }
     };
 
     fetchConversations();
-  }, []);
+  }, []); // Empty dependency array ensures this runs once on component mount
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white p-6">
       <h1 className="text-4xl font-extrabold mb-10 text-center text-blue-400">Your Conversations</h1>
 
       {error ? (
-        <p className="text-red-400 text-center">{error}</p> // Display error message
+        <p className="text-red-400 text-center">{error}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {conversations.length === 0 ? (
@@ -46,6 +41,7 @@ const ConversationList = () => {
               <div
                 key={conversation.id}
                 className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300"
+                onClick={() => history.push(`/conversation/${conversation.id}`)} // Navigate to Message List
               >
                 <h2 className="text-2xl text-white mb-4">{conversation.name}</h2>
                 <div className="text-gray-400 mb-6">

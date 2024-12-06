@@ -109,30 +109,48 @@ const io = new socketIo(server, {
   },
 });
 
-let connectedUsers = [];
+let conversations = [
+  { id: 1, name: 'Conversation 1', latestMessage: 'Hello', timestamp: '2024-12-06' },
+  { id: 2, name: 'Conversation 2', latestMessage: 'Hi', timestamp: '2024-12-06' },
+];
 
-io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
+let messages = {
+  1: [{ id: 1, text: 'Hello', timestamp: '2024-12-06' }],
+  2: [{ id: 2, text: 'Hi', timestamp: '2024-12-06' }],
+};
 
-  socket.on('mentorLogin', (data) => {
-    connectedUsers.push({ username: data.username, socketId: socket.id });
-    io.emit('userList', connectedUsers.map(user => user.username));
-    console.log(`Mentor ${data.username} logged in`);
-  });
+// Fetch all conversations
+app.get('/api/conversations', (req, res) => {
+  res.json(conversations);
+});
 
-  socket.on('sendMessage', (messageData) => {
-    const recipient = connectedUsers.find(user => 
-      user.username === messageData.mentorId || user.username === messageData.studentId
-    );
-    if (recipient) {
-      io.to(recipient.socketId).emit('receiveMessage', messageData);
-    }
-  });
+// Fetch messages for a specific conversation
+app.get('/api/messages/:conversationId', (req, res) => {
+  const { conversationId } = req.params;
+  res.json(messages[conversationId] || []);
+});
 
-  socket.on('disconnect', () => {
-    connectedUsers = connectedUsers.filter(user => user.socketId !== socket.id);
-    console.log('A user disconnected');
-  });
+// Send a new message to a conversation
+app.post('/api/messages/:conversationId', (req, res) => {
+  const { conversationId } = req.params;
+  const { text } = req.body;
+
+  const newMessage = {
+    id: messages[conversationId].length + 1,
+    text,
+    timestamp: new Date().toISOString(),
+  };
+
+  messages[conversationId].push(newMessage);
+
+  // Update the latest message in the conversations list
+  const conversation = conversations.find(conv => conv.id == conversationId);
+  if (conversation) {
+    conversation.latestMessage = text;
+    conversation.timestamp = newMessage.timestamp;
+  }
+
+  res.json(newMessage);
 });
 
 
