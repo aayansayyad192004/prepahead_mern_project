@@ -46,8 +46,8 @@ export default function App() {
           <Route path="/roadmap" element={<Roadmap />} />
           <Route path="/MentorshipPage" element={<MentorshipPage />} />
           <Route path="/connectnow/:mentorId" element={<ConnectNow />} />
-          <Route path="/conversation-list/:mentorId" element={<ConversationList />} />
-          <Route path="/messages/:conversationID" element={<MessageList />} />
+          <Route path="/conversation-list" element={<ConversationList />} />
+          <Route path="/messages/:conversationID" element={<MessageListPage />} />
           </Route>
            {/* ConnectNow Page Route with mentorId as param */}
 
