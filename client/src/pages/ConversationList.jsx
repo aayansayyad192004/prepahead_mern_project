@@ -3,82 +3,44 @@ import React, { useState, useEffect } from "react";
 // Make sure you include the ZEGOCLOUD SDK script in your public/index.html
 // <script src="https://unpkg.com/@zegocloud/zego-chat-sdk/dist/zego-chat-sdk.min.js"></script>
 
-const ConversationList = ({ mentorId, onSelectConversation }) => {
+const ConversationList = () => {
   const [conversations, setConversations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [sdkInstance, setSdkInstance] = useState(null);  // To store SDK instance
 
-  // Fetching and initializing ZEGOCLOUD SDK
   useEffect(() => {
-    const initZegoChat = async () => {
-      try {
-        const appID = import.meta.env.VITE_CHAT_ZEGO_APP_ID; // Replace with your AppID
-        const appKey = import.meta.env.VITE_CHAT_ZEGO_SERVER_SECRET_KEY; // Replace with your AppKey
-
-        // Initialize the ZEGOCLOUD chat SDK (global object from CDN)
-        const sdk = new window.ZegoChatSDK(appID, appKey);
-        setSdkInstance(sdk);
-
-        // If there's a mentorId, fetch the conversations
-        if (mentorId) {
-          const response = await fetch(`/api/conversations/${mentorId}`);
-          if (!response.ok) {
-            throw new Error("Failed to fetch conversations");
-          }
-          const data = await response.json();
-          setConversations(data);
-        }
-      } catch (error) {
-        console.error("Error initializing ZEGOCLOUD SDK or fetching conversations:", error);
-        setError(error.message);
-
-        // Fallback mock data in case of error
-        const mockData = [
-          { id: `chat_${mentorId}_1`, name: "Previous Conversation 1" },
-          { id: `chat_${mentorId}_2`, name: "Previous Conversation 2" },
-        ];
-        setConversations(mockData);
-      } finally {
-        setLoading(false);
-      }
+    // Call ZEGOCLOUD API to fetch conversations
+    const fetchConversations = async () => {
+      const response = await fetch('/api/conversations'); // replace with actual endpoint
+      const data = await response.json();
+      setConversations(data);
     };
 
-    initZegoChat();
-
-    return () => {
-      // Logout on unmount if necessary
-      if (sdkInstance) {
-        sdkInstance.logout();
-      }
-    };
-  }, [mentorId, sdkInstance]);
+    fetchConversations();
+  }, []);
 
   return (
-    <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg">
-      <h2 className="text-xl font-bold mb-4">Conversations</h2>
-
-      {loading ? (
-        <p className="text-gray-400 text-center">Loading conversations...</p>
-      ) : error ? (
-        <p className="text-red-400 text-center">{error}</p>
-      ) : (
-        <div className="space-y-4">
-          {conversations.length > 0 ? (
-            conversations.map((conversation) => (
-              <div
-                key={conversation.id}
-                onClick={() => onSelectConversation(conversation.id)}
-                className="cursor-pointer p-4 hover:bg-gray-700 rounded-lg transition-all duration-300"
-              >
-                {conversation.name}
+    <div className="min-h-screen bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+      <h1 className="text-4xl font-extrabold mb-10 text-center text-blue-400">Your Conversations</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {conversations.length === 0 ? (
+          <p className="text-gray-400 text-center">No conversations available.</p>
+        ) : (
+          conversations.map((conversation) => (
+            <div
+              key={conversation.id}
+              className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300"
+            >
+              <h2 className="text-2xl text-white mb-4">{conversation.name}</h2>
+              <div className="text-gray-400 mb-6">
+                <p>{conversation.latestMessage}</p>
+                <span className="text-gray-500 text-sm">{conversation.timestamp}</span>
               </div>
-            ))
-          ) : (
-            <p className="text-gray-400 text-center">No conversations yet</p>
-          )}
-        </div>
-      )}
+              <button className="text-blue-400 hover:text-blue-500 transition-all duration-300">
+                Open Conversation
+              </button>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };

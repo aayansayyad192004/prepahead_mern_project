@@ -1,110 +1,33 @@
 import React, { useState, useEffect } from "react";
-import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 
-const MessageList = ({ conversationID, mentor }) => {
+const MessageList = ({ conversationId }) => {
   const [messages, setMessages] = useState([]);
-  const [messageText, setMessageText] = useState("");
-
-  const appID = import.meta.env.VITE_CHAT_ZEGO_APP_ID;
-  const appSign = import.meta.env.VITE_CHAT_ZEGO_APP_SIGN_KEY;
-  const serverSecret = import.meta.env.VITE_CHAT_ZEGO_SERVER_SECRET_KEY;
-
-  const zp = ZegoUIKitPrebuilt.create(appID, appSign, serverSecret);
 
   useEffect(() => {
     const fetchMessages = async () => {
-      try {
-        const response = await fetch(`/api/messages/${conversationID}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch messages');
-        }
-        const data = await response.json();
-        setMessages(data);
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-        const mockMessages = [
-          { sender: mentor.name, text: "Hello! How can I help you today?" },
-          { sender: "You", text: "Hi, I wanted to discuss some career advice." }
-        ];
-        setMessages(mockMessages);
-      }
+      const response = await fetch(`/api/messages/${conversationId}`); // Fetch messages for a specific conversation
+      const data = await response.json();
+      setMessages(data);
     };
 
-    if (conversationID) {
-      fetchMessages();
-    }
-  }, [conversationID, mentor]);
-
-  const sendMessage = async () => {
-    if (messageText.trim()) {
-      const newMessage = {
-        sender: "You",
-        text: messageText,
-        timestamp: new Date().toISOString()
-      };
-
-      try {
-        const response = await fetch('/api/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            conversationID,
-            message: newMessage
-          })
-        });
-
-        if (response.ok) {
-          setMessages([...messages, newMessage]);
-          setMessageText("");
-        }
-      } catch (error) {
-        console.error('Error sending message:', error);
-        setMessages([...messages, newMessage]);
-        setMessageText("");
-      }
-    }
-  };
+    fetchMessages();
+  }, [conversationId]);
 
   return (
-    <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg">
-      <div className="flex items-center mb-4">
-        {mentor.profilePicture && (
-          <img 
-            src={mentor.profilePicture} 
-            alt={mentor.name} 
-            className="w-12 h-12 rounded-full mr-4"
-          />
-        )}
-        <h2 className="text-xl font-bold">{mentor.name}</h2>
-      </div>
-
-      <div className="h-72 overflow-y-auto mb-4">
-        {messages.map((message, index) => (
-          <div key={index} className={`flex mb-4 ${message.sender === "You" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[70%] p-3 rounded-lg ${message.sender === "You" ? "bg-blue-600 text-white" : "bg-gray-700 text-white"}`}>
-              {message.text}
+    <div className="min-h-screen bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+      <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+        {messages.length === 0 ? (
+          <p className="text-gray-400">No messages yet.</p>
+        ) : (
+          messages.map((message) => (
+            <div key={message.id} className="flex items-start mb-4">
+              <div className="bg-blue-500 text-white rounded-lg px-4 py-2 text-sm max-w-xs">
+                {message.text}
+              </div>
+              <span className="text-gray-400 ml-2 text-xs">{message.timestamp}</span>
             </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex">
-        <input
-          type="text"
-          value={messageText}
-          onChange={(e) => setMessageText(e.target.value)}
-          className="w-full p-2 rounded-lg bg-gray-700 text-white"
-          placeholder={`Message to ${mentor.name}`}
-          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-        />
-        <button
-          onClick={sendMessage}
-          className="ml-2 bg-blue-500 p-2 rounded-lg hover:bg-blue-400"
-        >
-          Send
-        </button>
+          ))
+        )}
       </div>
     </div>
   );
