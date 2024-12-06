@@ -7,14 +7,13 @@ const MessageList = ({ conversationID, mentor }) => {
 
   const appID = import.meta.env.VITE_CHAT_ZEGO_APP_ID;
   const appSign = import.meta.env.VITE_CHAT_ZEGO_APP_SIGN_KEY;
-  const serverSecret = import.meta.env.VITE_CHAT_ZEGO_SERVER_SECRET_KEY; // Use serverSecret
+  const serverSecret = import.meta.env.VITE_CHAT_ZEGO_SERVER_SECRET_KEY;
 
-  const zp = ZegoUIKitPrebuilt.create(appID, appSign, serverSecret); // Adjust to use serverSecret
+  const zp = ZegoUIKitPrebuilt.create(appID, appSign, serverSecret);
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        // Fetch messages for this specific conversation
         const response = await fetch(`/api/messages/${conversationID}`);
         if (!response.ok) {
           throw new Error('Failed to fetch messages');
@@ -23,7 +22,6 @@ const MessageList = ({ conversationID, mentor }) => {
         setMessages(data);
       } catch (error) {
         console.error('Error fetching messages:', error);
-        // Fallback to mocked messages
         const mockMessages = [
           { sender: mentor.name, text: "Hello! How can I help you today?" },
           { sender: "You", text: "Hi, I wanted to discuss some career advice." }
@@ -46,7 +44,6 @@ const MessageList = ({ conversationID, mentor }) => {
       };
 
       try {
-        // Send message to backend
         const response = await fetch('/api/messages', {
           method: 'POST',
           headers: {
@@ -64,7 +61,6 @@ const MessageList = ({ conversationID, mentor }) => {
         }
       } catch (error) {
         console.error('Error sending message:', error);
-        // Optimistically update messages even if send fails
         setMessages([...messages, newMessage]);
         setMessageText("");
       }
@@ -83,28 +79,17 @@ const MessageList = ({ conversationID, mentor }) => {
         )}
         <h2 className="text-xl font-bold">{mentor.name}</h2>
       </div>
-      
+
       <div className="h-72 overflow-y-auto mb-4">
         {messages.map((message, index) => (
-          <div 
-            key={index} 
-            className={`flex mb-4 ${
-              message.sender === "You" ? "justify-end" : "justify-start"
-            }`}
-          >
-            <div 
-              className={`max-w-[70%] p-3 rounded-lg ${
-                message.sender === "You" 
-                  ? "bg-blue-600 text-white" 
-                  : "bg-gray-700 text-white"
-              }`}
-            >
+          <div key={index} className={`flex mb-4 ${message.sender === "You" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[70%] p-3 rounded-lg ${message.sender === "You" ? "bg-blue-600 text-white" : "bg-gray-700 text-white"}`}>
               {message.text}
             </div>
           </div>
         ))}
       </div>
-      
+
       <div className="flex">
         <input
           type="text"

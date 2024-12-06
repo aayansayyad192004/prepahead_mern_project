@@ -1,19 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 
 const ConversationList = ({ mentorId, onSelectConversation }) => {
   const [conversations, setConversations] = useState([]);
 
-  const appID = import.meta.env.VITE_CHAT_ZEGO_APP_ID;
-  const appSign = import.meta.env.VITE_CHAT_ZEGO_APP_SIGN_KEY;
-  const serverSecret = import.meta.env.VITE_CHAT_ZEGO_SERVER_SECRET_KEY; // Use serverSecret
-
-  const zp = ZegoUIKitPrebuilt.create(appID, appSign, serverSecret); // Adjust to use serverSecret
-
   useEffect(() => {
     const fetchConversations = async () => {
       try {
-        // Fetch conversations specific to this mentor
         const response = await fetch(`/api/conversations/${mentorId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch conversations');
@@ -22,7 +14,6 @@ const ConversationList = ({ mentorId, onSelectConversation }) => {
         setConversations(data);
       } catch (error) {
         console.error('Error fetching conversations:', error);
-        // Fallback to mocked data if API fails
         const mockData = [
           { id: `chat_${mentorId}_1`, name: "Previous Conversation 1" },
           { id: `chat_${mentorId}_2`, name: "Previous Conversation 2" }
