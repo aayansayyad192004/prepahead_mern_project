@@ -42,19 +42,25 @@ export default function Header() {
     }
   }, [darkMode]);
 
-  // Example useEffect to fetch student list (for mentor chat feature)
+  // Fetch student by currentUser's ID for mentor chat feature
   useEffect(() => {
     if (currentUser && currentUser.role === 'mentor') {
-      // Fetch student list dynamically (or get from global state)
-      fetch('/api/students')
-        .then((response) => response.json())
-        .then((data) => {
-          // Example: Set the first student as the default for demo
-          if (data.length > 0) {
-            setStudentId(data[0].id); // Assume each student has an 'id'
+      // Fetch student by ID dynamically
+      fetch(`/api/students/${currentUser.id}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
+          return response.json();
         })
-        .catch((error) => console.error('Error fetching students:', error));
+        .then((data) => {
+          // Assuming the response is a student object with 'id' and other details
+          setStudentId(data.id); // Set the ID of the student for mentor chat
+        })
+        .catch((error) => {
+          console.error('Error fetching student:', error);
+          alert('Failed to load student data.');
+        });
     }
   }, [currentUser]);
 
