@@ -10,44 +10,56 @@ const MentorChatApp = () => {
   const { currentUser } = useSelector((state) => state.user);
 
   const [students, setStudents] = useState([]); // Replace with logic to fetch actual students
-
-  const [currentChat, setCurrentChat] = useState(null);
+  const [currentChat, setCurrentChat] = useState(null); // Current student being chatted with
 
   useEffect(() => {
-    // Fetch student list (replace with actual data fetching logic)
-    const fetchStudentById = async (studentId) => {
-        const response = await fetch(`http://localhost:10000/api/students/${studentId}`); // Fetch student by ID
+    // Fetch students (you can replace this with actual logic to get students)
+    const fetchStudents = async () => {
+      try {
+        const response = await fetch('http://localhost:10000/api/students'); // Replace with the correct API endpoint
         const data = await response.json();
-        setStudentDetails(data); // Update state with the student's details
-      };
-      
-    fetchStudents();
+        setStudents(data); // Set the fetched students
+      } catch (error) {
+        console.error('Error fetching students:', error);
+      }
+    };
+
+    fetchStudents(); // Fetch all students when the component mounts
 
     if (currentChat) {
-      // Fetch previous messages
+      // Fetch previous messages when currentChat changes
       const fetchMessages = async () => {
-        const response = await fetch(`http://localhost:10000/api/messages?sender=${currentUser.username}&receiver=${currentChat}`);
-        const data = await response.json();
-        setMessages(data);
+        try {
+          const response = await fetch(
+            `http://localhost:10000/api/messages?sender=${currentUser.username}&receiver=${currentChat}`
+          );
+          const data = await response.json();
+          setMessages(data); // Set the fetched messages
+        } catch (error) {
+          console.error('Error fetching messages:', error);
+        }
       };
 
       fetchMessages();
     }
 
+    // Socket listener to receive messages
     socket.on('receiveMessage', (newMessage) => {
       if (
         (newMessage.sender === currentUser.username && newMessage.receiver === currentChat) ||
         (newMessage.sender === currentChat && newMessage.receiver === currentUser.username)
       ) {
-        setMessages((prev) => [...prev, newMessage]);
+        setMessages((prev) => [...prev, newMessage]); // Append the received message to messages
       }
     });
 
+    // Cleanup: Remove socket listener when the component unmounts
     return () => {
       socket.off('receiveMessage');
     };
-  }, [currentUser, currentChat]);
+  }, [currentUser, currentChat]); // Dependency on currentUser and currentChat
 
+  // Handle sending messages
   const handleSendMessage = () => {
     if (message.trim() && currentUser) {
       const messageData = {
@@ -56,9 +68,9 @@ const MentorChatApp = () => {
         message,
       };
 
-      socket.emit('sendMessage', messageData);
-      setMessages((prev) => [...prev, messageData]);
-      setMessage('');
+      socket.emit('sendMessage', messageData); // Emit the message via socket
+      setMessages((prev) => [...prev, messageData]); // Update local messages
+      setMessage(''); // Clear the input field
     }
   };
 
@@ -73,7 +85,7 @@ const MentorChatApp = () => {
           <ul>
             {students.map((student) => (
               <li
-                key={student.username}
+                key={student._id}
                 onClick={() => setCurrentChat(student.username)} // Set chat with selected student
                 className="cursor-pointer hover:text-blue-500"
               >
