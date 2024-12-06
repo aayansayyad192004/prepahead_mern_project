@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; // Updated import
 
 const ConversationList = () => {
   const [conversations, setConversations] = useState([]);
   const [error, setError] = useState(null);
-  const history = useHistory();
+  const navigate = useNavigate(); // Updated to useNavigate
 
   // Fetch conversations dynamically from the backend
   useEffect(() => {
@@ -41,7 +41,7 @@ const ConversationList = () => {
               <div
                 key={conversation.id}
                 className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300"
-                onClick={() => history.push(`/conversation/${conversation.id}`)} // Navigate to Message List
+                onClick={() => navigate(`/conversation/${conversation.id}`)} // Updated to use navigate
               >
                 <h2 className="text-2xl text-white mb-4">{conversation.name}</h2>
                 <div className="text-gray-400 mb-6">
