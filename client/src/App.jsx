@@ -14,12 +14,13 @@ import JobRecommendation from './pages/JobRecommendation';
 import CourseRecommendation from './pages/CourseRecommendation';
 import Roadmap from './pages/Roadmap';
 import MentorshipPage from './pages/MentorshipPage';
-import PaymentPage from "./pages/PaymentPage"; // Correct import for PaymentPage
+import PaymentPage from './pages/PaymentPage'; // Correct import for PaymentPage
 import OverallDashboard from './pages/OverallDashboard';
 import ConnectNow from './pages/ConnectNow';
 import StudentVideoCall from './pages/StudentVideoCall';
-import StudentChatApp from './pages/StudentChatApp';
-import MentorChatApp from './pages/MentorChatApp'; 
+import ConversationList from './pages/ConversationList';
+import MessageList from './pages/MessageList';
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -34,26 +35,24 @@ export default function App() {
 
         {/* Protected Routes */}
         <Route element={<PrivateRoute />}>
-        <Route path="/OverallDashboard" element={<OverallDashboard />} />
-
+          <Route path="/overall-dashboard" element={<OverallDashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/mock-interview" element={<MockInterviewPage />} />
-          <Route path="/skillassessment" element={<SkillAssessment />} />
-          <Route path="/jobrecommendation" element={<JobRecommendation />} />
+          <Route path="/skill-assessment" element={<SkillAssessment />} />
+          <Route path="/job-recommendation" element={<JobRecommendation />} />
           <Route path="/payment" element={<PaymentPage />} />
-          <Route path="/courserecommendation" element={<CourseRecommendation />} />
+          <Route path="/course-recommendation" element={<CourseRecommendation />} />
           <Route path="/roadmap" element={<Roadmap />} />
-          <Route path="/MentorshipPage" element={<MentorshipPage />} />
+          <Route path="/mentorship" element={<MentorshipPage />} />
           <Route path="/connectnow/:mentorId" element={<ConnectNow />} />
-          <Route path="/mentor/messages" element={<MentorChatApp />} /> {/* Add the route for messages */}
-
-          </Route>
-           {/* ConnectNow Page Route with mentorId as param */}
+          <Route path="/mentor/messages" element={<MessageList />} />
+          <Route path="/conversation-list" element={<ConversationList />} />
+          <Route path="/messages/:conversationID" element={<MessageList />} />
+        </Route>
 
         {/* Subscription and Mentorship Routes */}
         <Route path="/video-call/:roomID" element={<StudentVideoCall />} />
-        <Route path="/chat/:id" element={<StudentChatApp />} />
       </Routes>
     </BrowserRouter>
   );

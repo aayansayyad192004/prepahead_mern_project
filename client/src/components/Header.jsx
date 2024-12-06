@@ -73,13 +73,13 @@ export default function Header() {
             </li>
           </Link>
           {currentUser && currentUser.role === 'mentor' && (
-            <Link to="/mentor/messages">
-            <li className="hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline">
-              <FaEnvelope className="text-slate-600 dark:text-gray-300" />
-            </li>
-          </Link>
-          
-          )}
+  <Link to="/conversation-list">
+    <li className="hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline">
+      <FaEnvelope className="text-slate-600 dark:text-gray-300" />
+    </li>
+  </Link>
+)}
+
            {currentUser && currentUser.role === 'student' && (
             <Link to="/dashboard">
               <li className="hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline">

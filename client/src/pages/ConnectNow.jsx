@@ -1,28 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import ConversationList from './ConversationList';
+import MessageList from './MessageList';
 
 const ConnectNow = () => {
-  const { mentorId } = useParams(); // Get mentorId from URL params
+  const { mentorId } = useParams();
   const navigate = useNavigate();
+  const [mentor, setMentor] = useState(null);
+  const [selectedConversation, setSelectedConversation] = useState(null);
 
-  // Handle mentor-specific data fetching here
-  // Example: Fetch mentor data based on mentorId if needed
+  // Fetch mentor details based on mentorId
+  useEffect(() => {
+    const fetchMentorDetails = async () => {
+      try {
+        const response = await fetch(`/api/mentors/${mentorId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch mentor details');
+        }
+        const mentorData = await response.json();
+        setMentor(mentorData);
+      } catch (error) {
+        console.error('Error fetching mentor details:', error);
+      }
+    };
+
+    if (mentorId) {
+      fetchMentorDetails();
+    }
+  }, [mentorId]);
 
   const goBack = () => {
-    navigate('/MentorshipPage'); // Go back to Mentorship page
+    navigate('/MentorshipPage');
   };
 
   const handleStartChat = () => {
-    // Generate a random roomID for the chat
-    const roomID = Math.floor(Math.random() * 10000) + "";
-    navigate(`/chat/${roomID}?mentorId=${mentorId || "defaultMentorId"}`);
+    // Generate a unique conversation ID with mentor information
+    const conversationID = `chat_${mentorId}_${Date.now()}`;
+    setSelectedConversation(conversationID);
   };
 
   const handleScheduleCall = () => {
-    // Generate a random roomID (or implement logic to fetch based on mentor)
     const roomID = Math.floor(Math.random() * 10000) + "";
-
-    // Navigate to the StudentVideoCall page with the roomID
     navigate(`/video-call/${roomID}`);
   };
 
@@ -42,6 +60,16 @@ const ConnectNow = () => {
           {/* Chat Option */}
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-center hover:shadow-2xl transition-all duration-300">
             <h2 className="text-3xl text-blue-400 mb-4">Chat with Mentor</h2>
+            {mentor && (
+              <div className="mb-4">
+                <img 
+                  src={mentor.profilePicture} 
+                  alt={mentor.name} 
+                  className="w-24 h-24 rounded-full mx-auto mb-2"
+                />
+                <p className="text-white font-semibold">{mentor.name}</p>
+              </div>
+            )}
             <p className="text-gray-400 mb-6">
               Start a text conversation with your mentor anytime.
             </p>
@@ -67,6 +95,24 @@ const ConnectNow = () => {
             </button>
           </div>
         </div>
+
+        {/* Chat Interface */}
+        {selectedConversation && mentor && (
+          <div className="mt-8 grid grid-cols-3 gap-4">
+            <div className="col-span-1">
+              <ConversationList 
+                mentorId={mentorId}
+                onSelectConversation={setSelectedConversation}
+              />
+            </div>
+            <div className="col-span-2">
+              <MessageList 
+                conversationID={selectedConversation} 
+                mentor={mentor}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
