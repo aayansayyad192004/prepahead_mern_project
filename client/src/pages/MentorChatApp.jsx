@@ -15,12 +15,12 @@ const MentorChatApp = () => {
 
   useEffect(() => {
     // Fetch student list (replace with actual data fetching logic)
-    const fetchStudents = async () => {
-      const response = await fetch('http://localhost:10000/api/students');
-      const data = await response.json();
-      setStudents(data);
-    };
-
+    const fetchStudentById = async (studentId) => {
+        const response = await fetch(`http://localhost:10000/api/students/${studentId}`); // Fetch student by ID
+        const data = await response.json();
+        setStudentDetails(data); // Update state with the student's details
+      };
+      
     fetchStudents();
 
     if (currentChat) {
