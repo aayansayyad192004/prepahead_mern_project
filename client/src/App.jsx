@@ -18,8 +18,8 @@ import PaymentPage from "./pages/PaymentPage"; // Correct import for PaymentPage
 import OverallDashboard from './pages/OverallDashboard';
 import ConnectNow from './pages/ConnectNow';
 import StudentVideoCall from './pages/StudentVideoCall';
-import StudentChatApp from './components/StudentChatApp'; // Assuming your component is here
-import MentorChatApp from './components/MentorChatApp';
+import StudentChatApp from './pages/StudentChatApp'; // Assuming your component is here
+import MentorChatApp from './pages/MentorChatApp';
 
 export default function App() {
   return (
