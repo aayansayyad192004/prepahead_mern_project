@@ -16,7 +16,7 @@ const MentorChatApp = () => {
       if (!currentUser) return;
 
       try {
-        const response = await fetch(`http://localhost:10000/api/students/${currentUser._id}`);
+        const response = await fetch(`http://localhost:10000/api/students/${studentId}`);
         if (!response.ok) {
           throw new Error(`Error: ${response.status} - ${response.statusText}`);
         }

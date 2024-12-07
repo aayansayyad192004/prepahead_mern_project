@@ -14,23 +14,27 @@ const StudentChatApp = () => {
 
   useEffect(() => {
     const fetchMentorInfo = async () => {
-      try {
-        const response = await fetch(`http://localhost:10000/api/mentors/${mentorId}`);
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        try {
+          const response = await fetch(`http://localhost:10000/api/mentors/${mentorId}`);
+          const responseText = await response.text(); // Read as plain text
+      
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+          }
+      
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = JSON.parse(responseText);
+            console.log('Mentor Data:', data);
+            setMentor(data);
+          } else {
+            throw new Error(`Unexpected response: ${responseText}`);
+          }
+        } catch (error) {
+          console.error('Error fetching mentor:', error);
         }
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          const data = await response.json();
-          setMentor(data);
-        } else {
-          throw new Error('Invalid response format: Expected JSON');
-        }
-      } catch (error) {
-        console.error('Error fetching mentor:', error);
-      }
-    };
-
+      };
+      
     fetchMentorInfo();
 
     socket.on('receiveMessage', (newMessage) => {

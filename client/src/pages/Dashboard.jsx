@@ -20,23 +20,40 @@ const Dashboard = () => {
   }, []);
 
   const renderDashboard = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {/* <DashboardCard icon={<FaChartLine />} title="Progress Tracker" content="You've completed 60% of your roadmap" />
-      <DashboardCard icon={<FaCode />} title="Skill Assessment" content="5 new challenges available" />
-      <DashboardCard icon={<FaMoneyBillWave />} title="Mentorship" content="3 new mentor sessions available" />
-      <DashboardCard icon={<FaRobot />} title="AI Interview Assistant" content="Practice your next interview" />
-      <DashboardCard icon={<FaBookOpen />} title="Curated Courses" content="10 recommended courses for you" />
-      <DashboardCard icon={<FaBriefcase />} title="Job Portal" content="15 new job openings match your profile" />
-      */}
-      <button onClick={() => navigate('/OverallDashboard')}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center"
-        >
-      <FaChartLine className="mr-2" /> This is Dashboard
-      </button>
-
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-4">Student Dashboard</h2>
+  
+      {/* Dashboard Grid */}
+      <div className="bg-gray-100 p-4 rounded-lg mb-6">
+        {/* Progress Tracker Section */}
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <h3 className="text-xl font-semibold mb-2">Track Your Progress</h3>
+          <p className="text-gray-600 mb-4">
+            Stay on top of your learning journey with insights into your completed tasks and upcoming goals.
+          </p>
+          <button
+            onClick={() => navigate('/OverallDashboard')}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center"
+          >
+            <FaChartLine className="mr-2" /> View Progress Tracker
+          </button>
+        </div>
+      </div>
+  
+      {/* Student Tips Section */}
+      <div className="mt-6 bg-gray-100 p-4 rounded-lg">
+        <h3 className="text-xl font-semibold mb-2">Student Tips for Success</h3>
+        <ul className="list-disc list-inside text-gray-600">
+          <li>Set achievable goals and track your progress consistently.</li>
+          <li>Engage with resources and mentors to enhance your learning experience.</li>
+          <li>Practice regularly and participate in skill challenges to improve.</li>
+          <li>Stay organized and maintain a steady learning routine.</li>
+        </ul>
+      </div>
     </div>
   );
-
+  
+  
   const renderProfileSetup = () => (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Profile Setup </h2>
@@ -92,29 +109,35 @@ const Dashboard = () => {
   const renderSkillAssessment = () => (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Skill Assessment</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+  
+      {/* Skill Assessment Grid */}
+      <div className="bg-gray-100 p-4 rounded-lg mb-6">
+        {/* Technical Problem Solving Section */}
         <div className="bg-gray-100 p-4 rounded-lg">
           <h3 className="text-xl font-semibold mb-2">Technical Problem Solving</h3>
           <p className="text-gray-600 mb-4">Complete coding challenges to assess your skills</p>
-          <button onClick={() => navigate('/SkillAssessment')}className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center">
+          <button
+            onClick={() => navigate('/SkillAssessment')}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 flex items-center"
+          >
             <SiLeetcode className="mr-2" /> Start Challenge
           </button>
         </div>
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <h3 className="text-xl font-semibold mb-2">Gap Analysis</h3>
-          <p className="text-gray-600 mb-4">Identify areas for improvement in your skill set</p>
-          <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300">View Analysis</button>
-        </div>
       </div>
-      <div className="bg-yellow-100 p-4 rounded-lg flex items-center">
-        <FaCamera className="text-2xl mr-4 text-yellow-600" />
-        <div>
-          <h3 className="text-lg font-semibold mb-1">Focus Tracking</h3>
-          <p className="text-gray-700">{isFocused ? 'You are focused. Keep it up!' : 'You seem distracted. Take a short break if needed.'}</p>
-        </div>
+  
+      {/* Additional Skill Assessment Tips or Sections */}
+      <div className="bg-gray-100 p-4 rounded-lg mt-6">
+        <h3 className="text-xl font-semibold mb-2">Tips for Successful Skill Assessment</h3>
+        <ul className="list-disc list-inside text-gray-600">
+          <li>Practice problem-solving regularly to improve speed and accuracy.</li>
+          <li>Break complex problems into smaller, manageable parts.</li>
+          <li>Focus on writing clean and efficient code.</li>
+          <li>Review solutions after completing challenges to identify areas for improvement.</li>
+        </ul>
       </div>
     </div>
   );
+  
 
   const renderMentorship = () => (
     <div className="bg-white p-6 rounded-lg shadow-md">
