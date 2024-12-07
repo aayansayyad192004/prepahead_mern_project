@@ -13,9 +13,10 @@ export const getStudents = async (req, res) => {
 // Fetch a specific student by ID
 export const getStudentById = async (req, res) => {
   try {
-    const student = await User.findOne({ 
+    const student = await User.find({ 
+      role: 'student',
       _id: req.params.id, // Find student by ID
-      role: 'student'      // Ensure the user has the 'student' role
+            // Ensure the user has the 'student' role
     });
 
     if (!student) {

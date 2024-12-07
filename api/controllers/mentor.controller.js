@@ -13,9 +13,10 @@ export const getMentors = async (req, res) => {
 // Fetch a specific mentor by ID
 export const getMentorById = async (req, res) => {
   try {
-    const mentor = await User.findOne({ 
+    const mentor = await User.find({
+      role: 'mentor', 
       _id: req.params.id, // Find mentor by ID
-      role: 'mentor'      // Ensure the user has the 'mentor' role
+            // Ensure the user has the 'mentor' role
     });
 
     if (!mentor) {
