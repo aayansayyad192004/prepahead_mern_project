@@ -7,32 +7,32 @@ const socket = io('http://localhost:10000'); // Replace with your backend URL
 const MentorChatApp = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
-  const [students, setStudents] = useState([]);
+  const [student, setStudent] = useState(null);  // To store the specific student data
   const [currentChat, setCurrentChat] = useState(null);
   const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchStudent = async () => {
       if (!currentUser) return;
 
       try {
-        const response = await fetch(`http://localhost:10000/api/students/${studentId}`);
+        const response = await fetch(`/api/student/${currentUser.id}`); // Use current user's ID to fetch their student data
         if (!response.ok) {
           throw new Error(`Error: ${response.status} - ${response.statusText}`);
         }
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
           const data = await response.json();
-          setStudents(data);
+          setStudent(data);  // Set the fetched student data
         } else {
           throw new Error('Invalid response format: Expected JSON');
         }
       } catch (error) {
-        console.error('Error fetching students:', error);
+        console.error('Error fetching student:', error);
       }
     };
 
-    fetchStudents();
+    fetchStudent();
 
     if (currentChat) {
       const fetchMessages = async () => {
@@ -85,21 +85,16 @@ const MentorChatApp = () => {
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
         <h2 className="text-2xl font-semibold mb-4">Mentor Chat</h2>
-        <div className="mb-4">
-          <h3 className="font-semibold">Select a Student to Chat:</h3>
-          <ul>
-            {students.map((student) => (
-              <li
-                key={student._id}
-                onClick={() => setCurrentChat(student.username)}
-                className="cursor-pointer hover:text-blue-500"
-              >
-                {student.username}
-              </li>
-            ))}
-          </ul>
-        </div>
 
+        {/* Display specific student details */}
+        {student && (
+          <div>
+            <h3 className="font-semibold">Student: {student.username}</h3>
+            <p>Email: {student.email}</p>
+          </div>
+        )}
+
+        {/* Chat interface */}
         {currentChat && (
           <div>
             <h4 className="font-semibold mb-4">Chat with {currentChat}</h4>

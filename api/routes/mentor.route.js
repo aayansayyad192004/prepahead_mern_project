@@ -5,5 +5,5 @@ const router = express.Router();
 
 // Route to fetch all mentors
 router.get('/', getMentors);
-router.get('/mentorinfo/:id', getMentorById);
+router.get('/mentor/:id', getMentorById);
 export default router;

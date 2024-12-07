@@ -20,7 +20,7 @@ const StudentChatApp = () => {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
-    
+
         // Check if the data is valid and process it
         if (data && data._id) {
           setMentor(data);  // Assuming setMentor is a function that sets the mentor data
@@ -30,8 +30,8 @@ const StudentChatApp = () => {
       } catch (error) {
         console.error('Error fetching mentor:', error);
       }
-      };
-      
+    };
+    
     fetchMentorInfo();
 
     socket.on('receiveMessage', (newMessage) => {
