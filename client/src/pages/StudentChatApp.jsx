@@ -14,25 +14,22 @@ const StudentChatApp = () => {
 
   useEffect(() => {
     const fetchMentorInfo = async () => {
-        try {
-          const response = await fetch(`http://localhost:10000/api/mentors/${mentorId}`);
-          const responseText = await response.text(); // Read as plain text
-      
-          if (!response.ok) {
-            throw new Error(`Error: ${response.status} - ${response.statusText}`);
-          }
-      
-          const contentType = response.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            const data = JSON.parse(responseText);
-            console.log('Mentor Data:', data);
-            setMentor(data);
-          } else {
-            throw new Error(`Unexpected response: ${responseText}`);
-          }
-        } catch (error) {
-          console.error('Error fetching mentor:', error);
+      try {
+        const response = await fetch(`/api/mentors/${mentorId}`); // Fetch by mentor ID
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
+        const data = await response.json();
+    
+        // Check if the data is valid and process it
+        if (data && data._id) {
+          setMentor(data);  // Assuming setMentor is a function that sets the mentor data
+        } else {
+          console.error('API response is not valid:', data);
+        }
+      } catch (error) {
+        console.error('Error fetching mentor:', error);
+      }
       };
       
     fetchMentorInfo();
