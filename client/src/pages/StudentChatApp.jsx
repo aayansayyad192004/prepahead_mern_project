@@ -15,7 +15,7 @@ const StudentChatApp = () => {
   useEffect(() => {
     const fetchMentorInfo = async () => {
       try {
-        const response = await fetch(`/api/mentor/${mentorId}`); // Fetch by mentor ID
+        const response = await fetch(`/api/mentorinfo/${mentorId}`); // Fetch by mentor ID
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
