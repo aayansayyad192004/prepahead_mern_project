@@ -1,4 +1,4 @@
-import { FaSearch, FaEnvelope } from 'react-icons/fa'; // Import FaEnvelope for messages icon
+import { FaSearch, FaEnvelope } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
@@ -7,9 +7,8 @@ export default function Header() {
   const { currentUser } = useSelector((state) => state.user);
   const [searchTerm, setSearchTerm] = useState('');
   const [darkMode, setDarkMode] = useState(
-    localStorage.getItem('theme') === 'dark' || false
+    localStorage.getItem('theme') === 'dark'
   );
-  const [studentId, setStudentId] = useState(null); // Example of storing studentId
   const navigate = useNavigate();
 
   const toggleDarkMode = () => {
@@ -19,50 +18,13 @@ export default function Header() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const urlParams = new URLSearchParams(window.location.search);
-    urlParams.set('searchTerm', searchTerm);
-    const searchQuery = urlParams.toString();
-    navigate(`/search?${searchQuery}`);
+    navigate(`/search?searchTerm=${searchTerm}`);
   };
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const searchTermFromUrl = urlParams.get('searchTerm');
-    if (searchTermFromUrl) {
-      setSearchTerm(searchTermFromUrl);
-    }
-  }, [location.search]);
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    if (darkMode) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
+    const root = document.documentElement;
+    darkMode ? root.classList.add('dark') : root.classList.remove('dark');
   }, [darkMode]);
-
-  // Fetch student by currentUser's ID for mentor chat feature
-  useEffect(() => {
-    const fetchStudent = async () => {
-      if (currentUser && currentUser.role === 'mentor' && studentId) {
-        try {
-          const response = await fetch(`/api/student/${studentId}`);
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const data = await response.json();
-          setStudentId(data.id); // Set the student ID
-        } catch (error) {
-          console.error('Error fetching student:', error);
-          alert('Failed to load student data.');
-        }
-      }
-    };
-  
-    fetchStudent();
-  }, [currentUser, studentId]);
-  
 
   return (
     <header className="bg-orange-400 dark:bg-gray-900 shadow-md">
@@ -94,21 +56,21 @@ export default function Header() {
               Home
             </li>
           </Link>
-          {currentUser && currentUser.role === 'mentor' && (
-            <Link to={`/mentor-chat/${studentId}`}>
-              <li className="hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline">
-                <FaEnvelope className="text-slate-600 dark:text-gray-300" />
+          {currentUser?.role === 'mentor' && (
+            <Link to="/mentor-chat/studentId">
+              <li className="text-red-950 dark:text-yellow-400 hover:underline">
+                <FaEnvelope />
               </li>
             </Link>
           )}
-          {currentUser && currentUser.role === 'student' && (
+          {currentUser?.role === 'student' && (
             <Link to="/dashboard">
               <li className="hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline">
                 Dashboard
               </li>
             </Link>
           )}
-          <Link to="/About">
+          <Link to="/about">
             <li className="hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline">
               About
             </li>
@@ -121,7 +83,7 @@ export default function Header() {
                 className="h-7 w-7 rounded-full object-cover"
               />
             ) : (
-              <li className="hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline">
+              <li className="text-red-950 dark:text-yellow-400 hover:underline">
                 Sign In
               </li>
             )}

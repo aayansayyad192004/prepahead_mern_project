@@ -45,5 +45,23 @@ router.get('/messages', async (req, res) => {
   }
 });
 
+router.get('/notifications', async (req, res) => {
+    try {
+      const notifications = await Message.aggregate([
+        {
+          $group: {
+            _id: '$sender',
+          },
+        },
+      ]);
+  
+      const uniqueSenders = notifications.map((n) => ({ username: n._id }));
+      res.status(200).json(uniqueSenders);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      res.status(500).json({ error: 'Error fetching notifications' });
+    }
+  });
+
 // Export router correctly
 export default router; 
