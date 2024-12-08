@@ -13,47 +13,85 @@ const StudentChatApp = () => {
   const { mentorId } = useParams(); // Extract mentorId from URL
 
   useEffect(() => {
+    // Fetch mentor details
     const fetchMentorInfo = async () => {
       try {
-        const response = await fetch(`/api/mentor/${mentorId}`); // Fetch by mentor ID
+        const response = await fetch(`http://localhost:10000/api/mentors/${mentorId}`);
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          throw new Error('Error fetching mentor');
         }
-        const data = await response.json();
-
-        // Check if the data is valid and process it
-        if (data && data._id) {
-          setMentor(data);  // Assuming setMentor is a function that sets the mentor data
-        } else {
-          console.error('API response is not valid:', data);
-        }
+        const mentorData = await response.json();
+        setMentor(mentorData);
       } catch (error) {
         console.error('Error fetching mentor:', error);
       }
     };
-    
-    fetchMentorInfo();
 
+    // Fetch chat messages
+    const fetchMessages = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:10000/api/chat/messages?sender=${currentUser.username}&receiver=${mentorId}`
+        );
+        if (!response.ok) {
+          throw new Error('Error fetching messages');
+        }
+        const messagesData = await response.json();
+        setMessages(messagesData);
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    };
+
+    fetchMentorInfo();
+    fetchMessages();
+
+    // Listen for incoming messages
     socket.on('receiveMessage', (newMessage) => {
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      if (
+        (newMessage.receiver === currentUser.username && newMessage.sender === mentorId) ||
+        (newMessage.receiver === mentorId && newMessage.sender === currentUser.username)
+      ) {
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+      }
     });
 
     return () => {
       socket.off('receiveMessage');
     };
-  }, [mentorId]);
+  }, [mentorId, currentUser]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (message.trim() && currentUser) {
       const messageData = {
         message,
-        userId: currentUser.username,
-        mentorId,
+        sender: currentUser.username,
+        receiver: mentorId,
       };
 
-      socket.emit('sendMessage', messageData); // Emit message to backend
-      setMessages((prevMessages) => [...prevMessages, messageData]); // Update local state immediately
-      setMessage('');
+      try {
+        // Emit the message to the socket
+        socket.emit('sendMessage', messageData);
+
+        // Send the message to the backend API to store in the database
+        const response = await fetch('http://localhost:10000/api/chat/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(messageData),
+        });
+
+        if (!response.ok) {
+          throw new Error('Error saving message');
+        }
+
+        const savedMessage = await response.json();
+        setMessages((prevMessages) => [...prevMessages, savedMessage]); // Update local state with the saved message
+        setMessage(''); // Clear the input field
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     }
   };
 
@@ -78,8 +116,8 @@ const StudentChatApp = () => {
           <div className="space-y-2">
             {messages.map((msg, index) => (
               <div key={index} className="flex items-start space-x-2">
-                <strong className={`text-${msg.userId === currentUser.username ? 'green' : 'blue'}-500`}>
-                  {msg.userId}:
+                <strong className={`text-${msg.sender === currentUser.username ? 'green' : 'blue'}-500`}>
+                  {msg.sender}:
                 </strong>
                 <span className="text-gray-700">{msg.message}</span>
               </div>

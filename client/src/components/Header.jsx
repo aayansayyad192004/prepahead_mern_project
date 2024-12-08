@@ -44,25 +44,25 @@ export default function Header() {
 
   // Fetch student by currentUser's ID for mentor chat feature
   useEffect(() => {
-    if (currentUser && currentUser.role === 'mentor') {
-      // Fetch student by ID dynamically
-      fetch(`/api/students/${currentUser.id}`)
-        .then((response) => {
+    const fetchStudent = async () => {
+      if (currentUser && currentUser.role === 'mentor' && studentId) {
+        try {
+          const response = await fetch(`/api/student/${studentId}`);
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
-          return response.json();
-        })
-        .then((data) => {
-          // Assuming the response is a student object with 'id' and other details
-          setStudentId(data.id); // Set the ID of the student for mentor chat
-        })
-        .catch((error) => {
+          const data = await response.json();
+          setStudentId(data.id); // Set the student ID
+        } catch (error) {
           console.error('Error fetching student:', error);
           alert('Failed to load student data.');
-        });
-    }
-  }, [currentUser]);
+        }
+      }
+    };
+  
+    fetchStudent();
+  }, [currentUser, studentId]);
+  
 
   return (
     <header className="bg-orange-400 dark:bg-gray-900 shadow-md">
@@ -94,7 +94,7 @@ export default function Header() {
               Home
             </li>
           </Link>
-          {currentUser && currentUser.role === 'mentor' && studentId && (
+          {currentUser && currentUser.role === 'mentor' && (
             <Link to={`/mentor-chat/${studentId}`}>
               <li className="hidden sm:inline text-red-950 dark:text-yellow-400 hover:underline">
                 <FaEnvelope className="text-slate-600 dark:text-gray-300" />

@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.route.js';
 import mentorRoutes from './routes/mentor.route.js';
 import resultRoutes from './routes/results.route.js';
 import studentRoutes from './routes/student.route.js'; 
+import chatRoutes from './routes/chatRoute.js';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import axios from 'axios';
@@ -112,6 +113,7 @@ const io = new socketIo(server, {
 
 let connectedUsers = [];
 
+// Socket event handlers
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
@@ -148,15 +150,14 @@ io.on('connection', (socket) => {
       console.error('Error saving message:', error);
     }
   });
-  
 
   socket.on('disconnect', () => {
     connectedUsers = connectedUsers.filter((user) => user.socketId !== socket.id);
     console.log('A user disconnected');
   });
-  
 });
 
+// Message route
 app.get('/api/messages', async (req, res) => {
   const { sender, receiver } = req.query;
 
@@ -174,14 +175,16 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
+
 // Use existing routes
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/mentors', mentorRoutes);
+app.use('/api/mentor', mentorRoutes);
 app.use('/api', resultRoutes);
+app.use('/api/students', studentRoutes);
 app.use('/api/student', studentRoutes);
-
-// Serve the React client (for production)
+app.use('/api/chat', chatRoutes);// Serve the React client (for production)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
 });
