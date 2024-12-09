@@ -48,7 +48,7 @@ export default function App() {
           <Route path="/MentorshipPage" element={<MentorshipPage />} />
           <Route path="/connectnow/:mentorId" element={<ConnectNow />} />
           <Route path="/student-chat/:mentorId" element={<StudentChatApp />} />
-          <Route path="/mentor-chat/:studentId" element={<MentorChatApp />} />
+          <Route path="/mentor-chat/:studentUsername" element={<MentorChatApp />} />
           </Route>
            {/* ConnectNow Page Route with mentorId as param */}
 

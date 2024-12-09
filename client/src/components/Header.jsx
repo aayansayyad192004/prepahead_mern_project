@@ -57,7 +57,7 @@ export default function Header() {
             </li>
           </Link>
           {currentUser?.role === 'mentor' && (
-            <Link to="/mentor-chat/studentId">
+             <Link to={`/mentor-chat/${currentUser.studentUsername}`}>
               <li className="text-red-950 dark:text-yellow-400 hover:underline">
                 <FaEnvelope />
               </li>

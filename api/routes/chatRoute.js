@@ -1,6 +1,6 @@
 import express from 'express';
 import Message from '../models/messageModel.js'; // Correctly import Message model
-
+import User from '../models/user.model.js';
 const router = express.Router();
 
 // Get chat messages between student and mentor
@@ -63,5 +63,33 @@ router.get('/notifications', async (req, res) => {
     }
   });
 
+  // Fetch details of a student by their ID
+
+// In your chat or users router
+router.get('/:username', async (req, res) => {
+  try {
+    const user = await User.findOne({ 
+      username: req.params.username, 
+      role: 'student' 
+    }).select('username email profilePicture');
+
+    if (!user) {
+      return res.status(404).json({ 
+        message: 'Student not found',
+        profilePicture: 'https://via.placeholder.com/150',
+        email: 'No email available'
+      });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error fetching student:', error);
+    res.status(500).json({ 
+      message: 'Error fetching student', 
+      profilePicture: 'https://via.placeholder.com/150',
+      email: 'No email available'
+    });
+  }
+});
 // Export router correctly
 export default router; 

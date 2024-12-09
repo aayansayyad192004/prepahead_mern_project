@@ -4,24 +4,18 @@ import User from '../models/user.model.js';
 const router = express.Router();
 
 // Route to fetch all students
-
-
-// Route to fetch a specific student by ID
-router.get('/:id', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const { id } = req.params;
-    const student = await User.findOne({ role: 'student', _id: id }); // Find student by ID
-
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
-
-    // Send back the student details (including profile picture and email)
-    res.status(200).json(student);
+    const students = await User.find({ role: 'student' });
+    res.status(200).json(mentors);
   } catch (error) {
-    console.error('Error fetching student:', error);
-    res.status(500).json({ message: 'Error fetching student', error: error.message });
+    console.error('Error fetching students:', error);
+    res.status(500).json({ message: 'Error fetching students', error: error.message });
   }
 });
+
+// Route to fetch a specific student by ID
+
+
 
 export default router;

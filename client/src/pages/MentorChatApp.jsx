@@ -1,61 +1,108 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 
-const socket = io('http://localhost:10000'); // Connect to the backend socket server
+const BASE_URL = 'http://localhost:10000';
+const socket = io(BASE_URL);
 
 const MentorChatApp = () => {
   const { currentUser } = useSelector((state) => state.user);
+  const { studentId } = useParams();
+  
   const [students, setStudents] = useState([]); 
   const [selectedStudent, setSelectedStudent] = useState(null); 
   const [messages, setMessages] = useState([]);  
   const [message, setMessage] = useState('');  
   const [studentDetails, setStudentDetails] = useState(null);  
 
+  // Fetch list of students with full details
   useEffect(() => {
-    const fetchNotifications = async () => {
+    const fetchStudentsWithDetails = async () => {
       try {
-        const response = await fetch('http://localhost:10000/api/chat/notifications');
-        const data = await response.json();
-        const filteredStudents = data.filter(student => student.username !== currentUser.username);
-        setStudents(filteredStudents);
+        // Fetch notifications first to get usernames
+        const notificationResponse = await fetch(`${BASE_URL}/api/chat/notifications`);
+        const notificationData = await notificationResponse.json();
+        
+        // Fetch full details for each student
+        const studentsWithDetails = await Promise.all(
+          notificationData
+            .filter(student => student.username !== currentUser.username)
+            .map(async (student) => {
+              try {
+                const detailResponse = await fetch(`${BASE_URL}/api/chat/${student.username}`);
+                if (!detailResponse.ok) {
+                  console.error(`Failed to fetch details for ${student.username}`);
+                  return {
+                    ...student, 
+                    profilePicture: 'https://via.placeholder.com/150',
+                    email: 'No email available'
+                  };
+                }
+                return await detailResponse.json();
+              } catch (error) {
+                console.error(`Error fetching details for ${student.username}:`, error);
+                return {
+                  ...student, 
+                  profilePicture: 'https://via.placeholder.com/150',
+                  email: 'No email available'
+                };
+              }
+            })
+        );
+        
+        setStudents(studentsWithDetails);
       } catch (error) {
         console.error('Error fetching notifications:', error);
+        setStudents([]);
       }
     };
 
-    fetchNotifications();
+    if (currentUser) {
+      fetchStudentsWithDetails();
+    }
   }, [currentUser]);
 
-  useEffect(() => {
-    const fetchStudentDetails = async () => {
-      if (selectedStudent && selectedStudent._id) {
-        try {
-          const response = await fetch(`http://localhost:10000/api/students/${selectedStudent._id}`);
-          const data = await response.json();
-          console.log(data);  // Log the response to verify if profilePicture and email are available
-          setStudentDetails(data);
-        } catch (error) {
-          console.error('Error fetching student details:', error);
+  // Fetch selected student details and messages
+  const fetchStudentDetails = useCallback(async (studentUsername) => {
+    if (studentUsername) {
+      try {
+        const response = await fetch(`${BASE_URL}/api/chat/${studentUsername}`);
+        if (!response.ok) {
+          throw new Error('Error fetching student details');
         }
+        const studentData = await response.json();
+        setStudentDetails(studentData);
+      } catch (error) {
+        console.error('Error fetching student details:', error);
+        setStudentDetails({
+          profilePicture: 'https://via.placeholder.com/150',
+          email: 'No email available'
+        });
       }
-    };
-    
-    fetchStudentDetails();
-  }, [selectedStudent]);
+    }
+  }, []);
 
+  const fetchMessages = useCallback(async () => {
+    if (selectedStudent && currentUser) {
+      try {
+        const response = await fetch(
+          `${BASE_URL}/api/chat/messages?sender=${selectedStudent.username}&receiver=${currentUser.username}`
+        );
+        const data = await response.json();
+        setMessages(data);
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    }
+  }, [selectedStudent, currentUser]);
+
+  // Listen for incoming messages
   const handleNewMessage = useCallback(
     (newMessage) => {
       if (newMessage.receiver === currentUser.username) {
-        if (newMessage.sender !== currentUser.username) {
-          setStudents((prevStudents) => {
-            if (!prevStudents.some((student) => student.username === newMessage.sender)) {
-              return [...prevStudents, { username: newMessage.sender }];
-            }
-            return prevStudents;
-          });
-        }
-        if (selectedStudent && newMessage.sender === selectedStudent.username) {
+        // Add the new message to the messages list for the selected student
+        if (newMessage.sender === selectedStudent?.username) {
           setMessages((prevMessages) => [...prevMessages, newMessage]);
         }
       }
@@ -68,22 +115,13 @@ const MentorChatApp = () => {
     return () => socket.off('receiveMessage', handleNewMessage);
   }, [handleNewMessage]);
 
+  // Fetch messages and student details when a new student is selected
   useEffect(() => {
     if (selectedStudent) {
-      const fetchMessages = async () => {
-        try {
-          const response = await fetch(
-            `http://localhost:10000/api/chat/messages?sender=${selectedStudent.username}&receiver=${currentUser.username}`
-          );
-          const data = await response.json();
-          setMessages(data);
-        } catch (error) {
-          console.error('Error fetching messages:', error);
-        }
-      };
       fetchMessages();
+      fetchStudentDetails(selectedStudent.username);
     }
-  }, [selectedStudent, currentUser]);
+  }, [selectedStudent, fetchMessages, fetchStudentDetails]);
 
   const handleSendMessage = async () => {
     if (message.trim() && selectedStudent) {
@@ -95,7 +133,7 @@ const MentorChatApp = () => {
       socket.emit('sendMessage', messageData);
 
       try {
-        const response = await fetch('http://localhost:10000/api/chat/send', {
+        const response = await fetch(`${BASE_URL}/api/chat/send`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(messageData),
@@ -142,13 +180,13 @@ const MentorChatApp = () => {
             <h2 className="text-2xl font-semibold mb-4">Chat with: {selectedStudent.username}</h2>
             <div className="flex items-center mb-4">
               <img
-                src={studentDetails ? studentDetails.profilePicture : ''}
+                src={selectedStudent.profilePicture || 'https://via.placeholder.com/150'}
                 alt="Student Profile"
                 className="w-12 h-12 rounded-full mr-4"
               />
               <div>
                 <p className="font-semibold">{selectedStudent.username}</p>
-                <p>{studentDetails ? studentDetails.email : ''}</p>
+                <p>{selectedStudent.email || 'No email available'}</p>
               </div>
             </div>
 

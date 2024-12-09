@@ -37,6 +37,7 @@ const StudentChatApp = () => {
           throw new Error('Error fetching messages');
         }
         const messagesData = await response.json();
+        console.log('Fetched messages:', messagesData); // Debugging log
         setMessages(messagesData);
       } catch (error) {
         console.error('Error fetching messages:', error);
@@ -48,9 +49,10 @@ const StudentChatApp = () => {
 
     // Listen for incoming messages
     socket.on('receiveMessage', (newMessage) => {
+      console.log('Received message:', newMessage); // Debugging log
       if (
-        (newMessage.receiver === currentUser.username && newMessage.sender === mentorId) ||
-        (newMessage.receiver === mentorId && newMessage.sender === currentUser.username)
+        (newMessage.receiver === currentUser.username && newMessage.sender === mentor.username) ||
+        (newMessage.receiver === mentor.username && newMessage.sender === currentUser.username)
       ) {
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
@@ -59,7 +61,7 @@ const StudentChatApp = () => {
     return () => {
       socket.off('receiveMessage');
     };
-  }, [mentorId, currentUser]);
+  }, [mentorId, currentUser.username]);
 
   const handleSendMessage = async () => {
     if (message.trim() && currentUser) {
@@ -87,8 +89,9 @@ const StudentChatApp = () => {
         }
 
         const savedMessage = await response.json();
-        setMessages((prevMessages) => [...prevMessages, savedMessage]); // Update local state with the saved message
-        setMessage(''); // Clear the input field
+        console.log('Saved message:', savedMessage); // Debugging log
+        setMessages((prevMessages) => [...prevMessages, savedMessage]);
+        setMessage('');
       } catch (error) {
         console.error('Error sending message:', error);
       }
@@ -104,7 +107,11 @@ const StudentChatApp = () => {
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
         <h2 className="text-2xl font-semibold mb-4">Chat with Mentor: {mentor.username}</h2>
         <div className="flex items-center mb-4">
-          <img src={mentor.profilePicture} alt="Mentor Profile" className="w-12 h-12 rounded-full mr-4" />
+          <img
+            src={mentor.profilePicture}
+            alt="Mentor Profile"
+            className="w-12 h-12 rounded-full mr-4"
+          />
           <div>
             <p className="font-semibold">{mentor.username}</p>
             <p>{mentor.email}</p>
@@ -115,10 +122,16 @@ const StudentChatApp = () => {
           <h3 className="font-semibold">Messages:</h3>
           <div className="space-y-2">
             {messages.map((msg, index) => (
-              <div key={index} className="flex items-start space-x-2">
+              <div
+                key={index}
+                className={`flex items-start space-x-2 ${
+                  msg.sender === currentUser.username ? 'justify-end' : 'justify-start'
+                }`}
+              >
                 <strong className={`text-${msg.sender === currentUser.username ? 'green' : 'blue'}-500`}>
                   {msg.sender}:
                 </strong>
+
                 <span className="text-gray-700">{msg.message}</span>
               </div>
             ))}
