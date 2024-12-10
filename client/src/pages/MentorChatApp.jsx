@@ -24,7 +24,7 @@ const MentorChatApp = () => {
         
         const studentsWithDetails = await Promise.all(
           notificationData
-            .filter(student => student.username !== currentUser.username)
+            .filter(student => student.username !== currentUser.username &&student.role !== 'mentor' )
             .map(async (student) => {
               try {
                 const detailResponse = await fetch(`${BASE_URL}/api/chat/${student.username}`);
