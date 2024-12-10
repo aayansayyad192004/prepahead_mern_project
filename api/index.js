@@ -117,40 +117,38 @@ let connectedUsers = [];
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
+  // Handle user joining
+  socket.on('userJoined', ({ username }) => {
+    connectedUsers.push({ username, socketId: socket.id });
+    console.log(`${username} joined the chat`);
+  });
+
+  // Handle sending messages
   socket.on('sendMessage', async (messageData) => {
-    const { message, userId, mentorId, studentId } = messageData;
-  
+    const { message, sender, receiver } = messageData;
+
     try {
-      // Ensure that messageData contains valid sender and receiver
-      if (!mentorId && !studentId) {
-        console.error('Error: Missing mentorId or studentId');
-        return;
-      }
-  
       // Save the message to MongoDB
       const newMessage = new Message({
-        sender: userId,
-        receiver: mentorId || studentId,
+        sender,
+        receiver,
         message,
       });
-  
-      await newMessage.save(); // Save message to MongoDB
-  
-      // Find the recipient's socket ID
-      const recipient = connectedUsers.find(
-        (user) => user.username === mentorId || user.username === studentId
-      );
-  
+      await newMessage.save();
+
+      // Emit the message to the recipient if they are connected
+      const recipient = connectedUsers.find((user) => user.username === receiver);
       if (recipient) {
-        io.to(recipient.socketId).emit('receiveMessage', messageData); // Send message to recipient
+        io.to(recipient.socketId).emit('receiveMessage', messageData);
       } else {
-        console.log('Error: Recipient not connected');
+        console.log('Recipient not connected');
       }
     } catch (error) {
-      console.error('Error saving message:', error);
+      console.error('Error handling sendMessage:', error);
     }
   });
 
+  // Handle user disconnecting
   socket.on('disconnect', () => {
     connectedUsers = connectedUsers.filter((user) => user.socketId !== socket.id);
     console.log('A user disconnected');
@@ -158,22 +156,7 @@ io.on('connection', (socket) => {
 });
 
 // Message route
-app.get('/api/messages', async (req, res) => {
-  const { sender, receiver } = req.query;
 
-  try {
-    const messages = await Message.find({
-      $or: [
-        { sender, receiver },
-        { sender: receiver, receiver: sender },
-      ],
-    }).sort({ timestamp: 1 });
-
-    res.status(200).json(messages);
-  } catch (error) {
-    res.status(500).json({ error: 'Error fetching messages' });
-  }
-});
 
 
 // Use existing routes

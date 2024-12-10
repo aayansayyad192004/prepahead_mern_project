@@ -3,80 +3,108 @@ import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 
-const socket = io('http://localhost:10000'); // Replace with your backend URL
+// Socket connection
+const BASE_URL = 'http://localhost:10000';
+const socket = io(BASE_URL);
 
 const StudentChatApp = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [mentor, setMentor] = useState(null);
   const { currentUser } = useSelector((state) => state.user);
-  const { mentorId } = useParams(); // Extract mentorId from URL
+  const { mentorId } = useParams();
 
+  // Fetch all messages between student and mentor
+  const fetchAllMessages = async (mentorUsername) => {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/api/chat/messages?sender=${currentUser.username}&receiver=${mentorUsername}`
+      );
+      
+      if (!response.ok) throw new Error('Error fetching messages');
+      
+      const messagesData = await response.json();
+      
+      // Sort messages by timestamp to ensure correct order
+      const sortedMessages = messagesData.sort((a, b) => 
+        new Date(a.timestamp) - new Date(b.timestamp)
+      );
+      
+      setMessages(sortedMessages);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  // Fetch mentor details
   useEffect(() => {
-    // Fetch mentor details
     const fetchMentorInfo = async () => {
       try {
-        const response = await fetch(`http://localhost:10000/api/mentors/${mentorId}`);
-        if (!response.ok) {
-          throw new Error('Error fetching mentor');
-        }
+        const response = await fetch(`${BASE_URL}/api/mentors/${mentorId}`);
+        if (!response.ok) throw new Error('Error fetching mentor details');
+        
         const mentorData = await response.json();
         setMentor(mentorData);
+        
+        // Fetch messages once mentor info is available
+        fetchAllMessages(mentorData.username);
       } catch (error) {
         console.error('Error fetching mentor:', error);
       }
     };
 
-    // Fetch chat messages
-    const fetchMessages = async () => {
-      try {
-        const response = await fetch(
-          `http://localhost:10000/api/chat/messages?sender=${currentUser.username}&receiver=${mentorId}`
-        );
-        if (!response.ok) {
-          throw new Error('Error fetching messages');
-        }
-        const messagesData = await response.json();
-        console.log('Fetched messages:', messagesData); // Debugging log
-        setMessages(messagesData);
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-      }
-    };
-
     fetchMentorInfo();
-    fetchMessages();
-
-    // Listen for incoming messages
-    socket.on('receiveMessage', (newMessage) => {
-      console.log('Received message:', newMessage); // Debugging log
-      if (
-        (newMessage.receiver === currentUser.username && newMessage.sender === mentor.username) ||
-        (newMessage.receiver === mentor.username && newMessage.sender === currentUser.username)
-      ) {
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
-      }
-    });
-
-    return () => {
-      socket.off('receiveMessage');
-    };
   }, [mentorId, currentUser.username]);
 
+  // Handle incoming messages
+  useEffect(() => {
+    const handleNewMessage = (newMessage) => {
+      // Ensure the message is related to this specific chat
+      const isRelevant = 
+        (newMessage.sender === mentor?.username && newMessage.receiver === currentUser.username) ||
+        (newMessage.sender === currentUser.username && newMessage.receiver === mentor?.username);
+
+      if (isRelevant) {
+        setMessages((prevMessages) => {
+          // Prevent duplicate messages
+          const isDuplicate = prevMessages.some(
+            msg => msg._id === newMessage._id || 
+                   (msg.message === newMessage.message && 
+                    msg.sender === newMessage.sender && 
+                    msg.timestamp === newMessage.timestamp)
+          );
+
+          if (!isDuplicate) {
+            return [...prevMessages, newMessage].sort((a, b) => 
+              new Date(a.timestamp) - new Date(b.timestamp)
+            );
+          }
+          return prevMessages;
+        });
+      }
+    };
+
+    socket.on('receiveMessage', handleNewMessage);
+
+    return () => {
+      socket.off('receiveMessage', handleNewMessage);
+    };
+  }, [currentUser.username, mentor?.username]);
+
   const handleSendMessage = async () => {
-    if (message.trim() && currentUser) {
+    if (message.trim() && mentor) {
       const messageData = {
         message,
         sender: currentUser.username,
-        receiver: mentorId,
+        receiver: mentor.username,
       };
 
       try {
         // Emit the message to the socket
         socket.emit('sendMessage', messageData);
 
-        // Send the message to the backend API to store in the database
-        const response = await fetch('http://localhost:10000/api/chat/send', {
+        // Save the message in the database
+        const response = await fetch(`${BASE_URL}/api/chat/send`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -84,13 +112,18 @@ const StudentChatApp = () => {
           body: JSON.stringify(messageData),
         });
 
-        if (!response.ok) {
-          throw new Error('Error saving message');
-        }
+        if (!response.ok) throw new Error('Error saving message');
 
         const savedMessage = await response.json();
-        console.log('Saved message:', savedMessage); // Debugging log
-        setMessages((prevMessages) => [...prevMessages, savedMessage]);
+        
+        // Update messages state
+        setMessages((prevMessages) => {
+          const updatedMessages = [...prevMessages, savedMessage].sort((a, b) => 
+            new Date(a.timestamp) - new Date(b.timestamp)
+          );
+          return updatedMessages;
+        });
+        
         setMessage('');
       } catch (error) {
         console.error('Error sending message:', error);
@@ -108,7 +141,7 @@ const StudentChatApp = () => {
         <h2 className="text-2xl font-semibold mb-4">Chat with Mentor: {mentor.username}</h2>
         <div className="flex items-center mb-4">
           <img
-            src={mentor.profilePicture}
+            src={mentor.profilePicture || 'https://via.placeholder.com/150'}
             alt="Mentor Profile"
             className="w-12 h-12 rounded-full mr-4"
           />
@@ -120,7 +153,7 @@ const StudentChatApp = () => {
 
         <div className="space-y-4 mb-4">
           <h3 className="font-semibold">Messages:</h3>
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-80 overflow-y-auto border p-2 rounded">
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -128,11 +161,19 @@ const StudentChatApp = () => {
                   msg.sender === currentUser.username ? 'justify-end' : 'justify-start'
                 }`}
               >
-                <strong className={`text-${msg.sender === currentUser.username ? 'green' : 'blue'}-500`}>
-                  {msg.sender}:
-                </strong>
-
-                <span className="text-gray-700">{msg.message}</span>
+                <div className={`
+                  p-2 rounded max-w-[70%]
+                  ${msg.sender === currentUser.username 
+                    ? 'bg-blue-100 text-right' 
+                    : 'bg-green-100 text-left'}
+                `}>
+                  <strong className={`text-sm block mb-1 ${
+                    msg.sender === currentUser.username ? 'text-blue-700' : 'text-green-700'
+                  }`}>
+                    {msg.sender === currentUser.username ? 'You' : msg.sender}
+                  </strong>
+                  <span className="text-gray-800">{msg.message}</span>
+                </div>
               </div>
             ))}
           </div>
@@ -145,6 +186,11 @@ const StudentChatApp = () => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className="p-2 border border-gray-300 rounded-lg w-full"
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleSendMessage();
+              }
+            }}
           />
           <button
             onClick={handleSendMessage}

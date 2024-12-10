@@ -193,14 +193,28 @@ const MentorChatApp = () => {
             <div className="space-y-4 mb-4">
               <h3 className="font-semibold">Messages:</h3>
               <div className="space-y-2">
-                {messages.map((msg, index) => (
-                  <div key={index} className="flex items-start space-x-2">
-                    <strong className={`text-${msg.sender === currentUser.username ? 'green' : 'blue'}-500`}>
-                      {msg.sender}:
-                    </strong>
-                    <span className="text-gray-700">{msg.message}</span>
-                  </div>
-                ))}
+              {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex items-start space-x-2 ${
+                  msg.sender === currentUser.username ? 'justify-end' : 'justify-start'
+                }`}
+              >
+                <div className={`
+                  p-2 rounded max-w-[70%]
+                  ${msg.sender === currentUser.username 
+                    ? 'bg-blue-100 text-right' 
+                    : 'bg-green-100 text-left'}
+                `}>
+                  <strong className={`text-sm block mb-1 ${
+                    msg.sender === currentUser.username ? 'text-blue-700' : 'text-green-700'
+                  }`}>
+                    {msg.sender === currentUser.username ? 'You' : msg.sender}
+                  </strong>
+                  <span className="text-gray-800">{msg.message}</span>
+                </div>
+              </div>
+            ))}
               </div>
             </div>
 
