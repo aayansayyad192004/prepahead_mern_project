@@ -21,47 +21,62 @@ const MentorChatApp = () => {
       try {
         const notificationResponse = await fetch(`${BASE_URL}/api/chat/notifications`);
         const notificationData = await notificationResponse.json();
-        
+   
         const studentsWithDetails = await Promise.all(
           notificationData
-            .filter(student => student.username !== currentUser.username &&student.role !== 'mentor' )
-            .map(async (student) => {
-              try {
-                const detailResponse = await fetch(`${BASE_URL}/api/chat/${student.username}`);
-                if (!detailResponse.ok) {
-                  return {
-                    ...student, 
-                    profilePicture: 'https://via.placeholder.com/150',
-                    email: 'No email available'
-                  };
-                }
-                return await detailResponse.json();
-              } catch (error) {
-                return {
-                  ...student, 
-                  profilePicture: 'https://via.placeholder.com/150',
-                  email: 'No email available'
-                };
+            .map(student => {
+              const role = student.role ? student.role.toLowerCase() : '';
+   
+              // Check for existing messages
+              if (student.username !== currentUser.username && role !== 'mentor') {
+                return fetch(`${BASE_URL}/api/chat/messages?sender=${student.username}&receiver=${currentUser.username}`)
+                  .then(messageResponse => messageResponse.json())
+                  .then(messagesData => {
+                    if (messagesData.length > 0) {
+                      return fetch(`${BASE_URL}/api/chat/${student.username}`)
+                        .then(detailResponse => detailResponse.json())
+                        .catch(() => ({
+                          ...student,
+                          profilePicture: 'https://via.placeholder.com/150',
+                          email: 'No email available',
+                        }));
+                    }
+                    return null; // Skip students who haven't sent any message
+                  })
+                  .catch(() => null);
               }
+              return null;
             })
         );
-        
-        setStudents(studentsWithDetails);
+   
+        const filteredStudents = studentsWithDetails.filter(student => student !== null);
+        setStudents(filteredStudents);
       } catch (error) {
+        console.error('Error fetching students:', error);
         setStudents([]);
       }
     };
-
+   
+  
     if (currentUser) {
       fetchStudentsWithDetails();
     }
   }, [currentUser]);
+  
 
   const fetchStudentDetails = useCallback(async (studentUsername) => {
     if (studentUsername) {
       try {
+        // Fetch basic student data
         const response = await fetch(`${BASE_URL}/api/chat/${studentUsername}`);
         const studentData = await response.json();
+        
+        // Check if the student is a mentor and if so, return early
+        if (studentData.role && studentData.role.toLowerCase() === 'mentor') {
+          setStudentDetails(null); // Or handle this case as needed
+          return; // Prevent further fetching for mentors
+        }
+        
         setStudentDetails(studentData);
       } catch (error) {
         setStudentDetails({
@@ -71,7 +86,7 @@ const MentorChatApp = () => {
       }
     }
   }, []);
-
+  
   const fetchMessages = useCallback(async () => {
     if (selectedStudent && currentUser) {
       try {
@@ -144,40 +159,44 @@ const MentorChatApp = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar for students */}
-            <div className="w-1/4 bg-gray-800 text-white p-4 flex flex-col  shadow-lg">
-        <h2 className="text-lg font-semibold border-b-2 pb-2 mb-4 text-gray-300">Students</h2>
-        <ul className="mt-2 space-y-2 overflow-y-auto">
-          {students.map((student, index) => (
-            <li
-              key={index}
-              className={`p-3 rounded-md cursor-pointer hover:bg-blue-700 transition duration-200 ease-in-out ${selectedStudent?.username === student.username ? 'bg-blue-700' : ''}`}
-              onClick={() => setSelectedStudent(student)}
-            >
-              <div className="flex items-center">
-                <img
-                  src={student.profilePicture || 'https://via.placeholder.com/150'}
-                  alt="Student"
-                  className="w-12 h-12 rounded-full mr-4 border-2 border-gray-500"
-                />
-                <span className="text-lg font-medium text-gray-200">{student.username}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
+      <div className="w-1/4 bg-gray-800 text-white p-4 flex flex-col shadow-lg">
+  <h2 className="text-lg font-semibold border-b-2 pb-2 mb-4 text-gray-300">Students</h2>
+  <ul className="mt-2 space-y-2 overflow-y-auto">
+    {students
+      .filter(student => student.role !== 'mentor') // Filter students based on role
+      .map((student, index) => (
+        <li
+          key={index}
+          className={`p-3 rounded-md cursor-pointer hover:bg-blue-700 transition duration-200 ease-in-out ${selectedStudent?.username === student.username ? 'bg-blue-700' : ''}`}
+          onClick={() => setSelectedStudent(student)}
+        >
+          <div className="flex items-center">
+            <img
+              src={student.profilePicture || 'https://via.placeholder.com/150'}
+              alt="Student"
+              className="w-12 h-12 rounded-full mr-4 border-2 border-gray-500"
+            />
+            <span className="text-lg font-medium text-gray-200">{student.username}</span>
+          </div>
+        </li>
+      ))}
+  </ul>
+</div>
 
       {/* Main chat area */}
       <div className="flex-1 p-8">
         {selectedStudent ? (
           <div className="bg-white rounded-lg shadow-xl max-w-xl mx-auto p-6">
             {/* Chat Header */}
+  
             <div className="flex items-center mb-6 border-b pb-4 bg-gray-800 text-white rounded-t-lg shadow-md p-4">
-  <img
-    src={selectedStudent.profilePicture || 'https://via.placeholder.com/150'}
-    alt="Student Profile"
-    className="w-16 h-16 rounded-full mr-4"
-  />
+           
+    <img
+      src={selectedStudent.profilePicture || 'https://via.placeholder.com/150'}
+      alt="Student Profile"
+      className="w-16 h-16 rounded-full mr-4"
+    />
+  
   <div>
     <p className="text-3xl font-bold text-gray-200 hover:text-blue-400 transition duration-300 ease-in-out">
       {selectedStudent.username}
