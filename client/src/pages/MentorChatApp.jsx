@@ -16,15 +16,12 @@ const MentorChatApp = () => {
   const [message, setMessage] = useState('');  
   const [studentDetails, setStudentDetails] = useState(null);  
 
-  // Fetch list of students with full details
   useEffect(() => {
     const fetchStudentsWithDetails = async () => {
       try {
-        // Fetch notifications first to get usernames
         const notificationResponse = await fetch(`${BASE_URL}/api/chat/notifications`);
         const notificationData = await notificationResponse.json();
         
-        // Fetch full details for each student
         const studentsWithDetails = await Promise.all(
           notificationData
             .filter(student => student.username !== currentUser.username)
@@ -32,7 +29,6 @@ const MentorChatApp = () => {
               try {
                 const detailResponse = await fetch(`${BASE_URL}/api/chat/${student.username}`);
                 if (!detailResponse.ok) {
-                  console.error(`Failed to fetch details for ${student.username}`);
                   return {
                     ...student, 
                     profilePicture: 'https://via.placeholder.com/150',
@@ -41,7 +37,6 @@ const MentorChatApp = () => {
                 }
                 return await detailResponse.json();
               } catch (error) {
-                console.error(`Error fetching details for ${student.username}:`, error);
                 return {
                   ...student, 
                   profilePicture: 'https://via.placeholder.com/150',
@@ -53,7 +48,6 @@ const MentorChatApp = () => {
         
         setStudents(studentsWithDetails);
       } catch (error) {
-        console.error('Error fetching notifications:', error);
         setStudents([]);
       }
     };
@@ -63,18 +57,13 @@ const MentorChatApp = () => {
     }
   }, [currentUser]);
 
-  // Fetch selected student details and messages
   const fetchStudentDetails = useCallback(async (studentUsername) => {
     if (studentUsername) {
       try {
         const response = await fetch(`${BASE_URL}/api/chat/${studentUsername}`);
-        if (!response.ok) {
-          throw new Error('Error fetching student details');
-        }
         const studentData = await response.json();
         setStudentDetails(studentData);
       } catch (error) {
-        console.error('Error fetching student details:', error);
         setStudentDetails({
           profilePicture: 'https://via.placeholder.com/150',
           email: 'No email available'
@@ -97,11 +86,9 @@ const MentorChatApp = () => {
     }
   }, [selectedStudent, currentUser]);
 
-  // Listen for incoming messages
   const handleNewMessage = useCallback(
     (newMessage) => {
       if (newMessage.receiver === currentUser.username) {
-        // Add the new message to the messages list for the selected student
         if (newMessage.sender === selectedStudent?.username) {
           setMessages((prevMessages) => [...prevMessages, newMessage]);
         }
@@ -115,7 +102,6 @@ const MentorChatApp = () => {
     return () => socket.off('receiveMessage', handleNewMessage);
   }, [handleNewMessage]);
 
-  // Fetch messages and student details when a new student is selected
   useEffect(() => {
     if (selectedStudent) {
       fetchMessages();
@@ -158,77 +144,99 @@ const MentorChatApp = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar for students */}
-      <div className="w-1/4 bg-white shadow-lg border-r">
-        <h2 className="text-lg font-bold p-4 border-b bg-gray-200 text-gray-800">Students</h2>
-        <ul className="p-4">
+            <div className="w-1/4 bg-gray-800 text-white p-4 flex flex-col  shadow-lg">
+        <h2 className="text-lg font-semibold border-b-2 pb-2 mb-4 text-gray-300">Students</h2>
+        <ul className="mt-2 space-y-2 overflow-y-auto">
           {students.map((student, index) => (
             <li
               key={index}
-              className={`p-2 rounded-md mb-2 cursor-pointer hover:bg-gray-300 ${selectedStudent?.username === student.username ? 'bg-gray-300 font-bold' : ''}`}
+              className={`p-3 rounded-md cursor-pointer hover:bg-blue-700 transition duration-200 ease-in-out ${selectedStudent?.username === student.username ? 'bg-blue-700' : ''}`}
               onClick={() => setSelectedStudent(student)}
             >
-              {student.username}
+              <div className="flex items-center">
+                <img
+                  src={student.profilePicture || 'https://via.placeholder.com/150'}
+                  alt="Student"
+                  className="w-12 h-12 rounded-full mr-4 border-2 border-gray-500"
+                />
+                <span className="text-lg font-medium text-gray-200">{student.username}</span>
+              </div>
             </li>
           ))}
         </ul>
       </div>
 
+
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 p-8">
         {selectedStudent ? (
-          <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-            <h2 className="text-2xl font-semibold mb-4">Chat with: {selectedStudent.username}</h2>
-            <div className="flex items-center mb-4">
-              <img
-                src={selectedStudent.profilePicture || 'https://via.placeholder.com/150'}
-                alt="Student Profile"
-                className="w-12 h-12 rounded-full mr-4"
-              />
-              <div>
-                <p className="font-semibold">{selectedStudent.username}</p>
-                <p>{selectedStudent.email || 'No email available'}</p>
-              </div>
-            </div>
+          <div className="bg-white rounded-lg shadow-xl max-w-xl mx-auto p-6">
+            {/* Chat Header */}
+            <div className="flex items-center mb-6 border-b pb-4 bg-gray-800 text-white rounded-t-lg shadow-md p-4">
+  <img
+    src={selectedStudent.profilePicture || 'https://via.placeholder.com/150'}
+    alt="Student Profile"
+    className="w-16 h-16 rounded-full mr-4"
+  />
+  <div>
+    <p className="text-3xl font-bold text-gray-200 hover:text-blue-400 transition duration-300 ease-in-out">
+      {selectedStudent.username}
+    </p>
+    <p className="text-gray-400 italic mt-1">{selectedStudent.email || 'No email available'}</p>
+  </div>
+</div>
 
-            <div className="space-y-4 mb-4">
-              <h3 className="font-semibold">Messages:</h3>
-              <div className="space-y-2">
+
+            {/* Chat Messages */}
+            <div className="space-y-4 mb-4 overflow-y-auto h-72">
               {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`flex items-start space-x-2 ${
-                  msg.sender === currentUser.username ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                <div className={`
-                  p-2 rounded max-w-[70%]
-                  ${msg.sender === currentUser.username 
-                    ? 'bg-blue-100 text-right' 
-                    : 'bg-green-100 text-left'}
-                `}>
-                  <strong className={`text-sm block mb-1 ${
-                    msg.sender === currentUser.username ? 'text-blue-700' : 'text-green-700'
-                  }`}>
-                    {msg.sender === currentUser.username ? 'You' : msg.sender}
-                  </strong>
-                  <span className="text-gray-800">{msg.message}</span>
+                <div
+                  key={index}
+                  className={`flex items-start ${msg.sender === currentUser.username ? 'justify-end' : 'justify-start'}`}
+                >
+                  {/* Profile picture for other user */}
+                  {msg.sender !== currentUser.username && selectedStudent.profilePicture && (
+                    <img
+                      src={selectedStudent.profilePicture}
+                      alt={`${msg.sender}'s avatar`}
+                      className="w-10 h-10 rounded-full object-cover border-2 border-gray-300 mr-3"
+                    />
+                  )}
+
+                  {/* Message bubble */}
+                  <div
+                    className={`p-3 max-w-xs rounded-lg ${msg.sender === currentUser.username ? 'bg-blue-100' : 'bg-green-100'}`}
+                  >
+                    <strong className="text-sm block mb-1">
+                      {msg.sender === currentUser.username ? 'You' : msg.sender}
+                    </strong>
+                    <p className="text-gray-800">{msg.message}</p>
+                  </div>
+
+                  {/* Profile picture for current user */}
+                  {msg.sender === currentUser.username && currentUser.profilePicture && (
+                    <img
+                      src={currentUser.profilePicture}
+                      alt={`${currentUser.username}'s avatar`}
+                      className="w-10 h-10 rounded-full object-cover border-2 border-gray-300 ml-3"
+                    />
+                  )}
                 </div>
-              </div>
-            ))}
-              </div>
+              ))}
             </div>
 
-            <div className="flex flex-col items-center space-y-4">
+            {/* Message Input */}
+            <div className="flex items-center mt-4">
               <input
                 type="text"
-                placeholder="Type a message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="p-2 border border-gray-300 rounded-lg w-full"
+                placeholder="Type a message..."
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
                 onClick={handleSendMessage}
-                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                className="ml-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
               >
                 Send
               </button>
@@ -236,7 +244,7 @@ const MentorChatApp = () => {
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <h2 className="text-lg font-bold text-gray-800">Select a student to start chatting</h2>
+            <h2 className="text-xl font-semibold text-gray-700">Select a student to start chatting</h2>
           </div>
         )}
       </div>
