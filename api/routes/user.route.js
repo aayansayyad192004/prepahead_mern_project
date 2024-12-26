@@ -21,18 +21,5 @@ router.get('/api/students', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Error fetching students' });
   }
 });
-router.post('/add', async (req, res) => {
-  const { planName, userId, endDate } = req.body;
-  try {
-    const subscription = new Subscription({
-      planName,
-      user: userId,
-      endDate,
-    });
-    await subscription.save();
-    res.status(200).json({ message: 'Subscription created successfully' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to create subscription' });
-  }
-});
+
 export default router;

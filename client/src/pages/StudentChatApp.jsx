@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 
-const socket = io('http://localhost:10000'); // Replace with your backend URL
+const socket = io(import.meta.env.VITE_BASE_URL); // Replace with your backend URL
 
 const StudentChatApp = () => {
   const [message, setMessage] = useState('');
@@ -15,7 +15,7 @@ const StudentChatApp = () => {
   useEffect(() => {
     const fetchMentorInfo = async () => {
       try {
-        const response = await fetch(`http://localhost:10000/api/mentors/${mentorId}`);
+        const response = await fetch(`/api/mentors/${mentorId}`);
         const mentorData = await response.json();
         setMentor(mentorData);
       } catch (error) {
@@ -25,7 +25,7 @@ const StudentChatApp = () => {
 
     const fetchMessages = async () => {
       try {
-        const response = await fetch(`http://localhost:10000/api/chat/messages?sender=${currentUser.username}&receiver=${mentor?.username}`);
+        const response = await fetch(`/api/chat/messages?sender=${currentUser.username}&receiver=${mentor?.username}`);
         const messagesData = await response.json();
         setMessages(messagesData);
       } catch (error) {
@@ -62,7 +62,7 @@ const StudentChatApp = () => {
       try {
         socket.emit('sendMessage', messageData);
 
-        const response = await fetch('http://localhost:10000/api/chat/send', {
+        const response = await fetch('/api/chat/send', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

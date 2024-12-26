@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 
-const BASE_URL = 'http://localhost:10000';
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 const socket = io(BASE_URL);
 
 const MentorChatApp = () => {

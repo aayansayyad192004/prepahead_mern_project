@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { FaCamera, FaMicrophone, FaStop } from "react-icons/fa";
 import axios from "axios";
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { useSelector } from 'react-redux'; // Add this line at the top
+
+
 
 const jobRoles = [
   { "id": 1, "title": "Software Engineer" },
@@ -162,6 +165,8 @@ const MockInterviewPage = () => {
     })
     .catch((error) => console.error("Error accessing microphone:", error));
 };
+const { currentUser } = useSelector((state) => state.user); 
+
 
   
   // New function to transcribe audio
@@ -323,6 +328,9 @@ const calculateScore = () => {
       ) : showResults ? (
         <div className="space-y-8 bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-3xl font-semibold text-center text-blue-600">Interview Results</h2>
+          <h1 className="text-3xl font-semibold text-center text-blue-600">
+            Mock Interview Result for <span className="text-blue-800">{currentUser?.username}</span>
+        </h1> 
           <p className="text-2xl text-center">Your score: <span className="font-bold">{score}</span></p>
           <ul className="space-y-4">
             {userAnswers.map((answer, index) => (
