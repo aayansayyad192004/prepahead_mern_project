@@ -63,11 +63,20 @@ app.get('/api/jobs', async (req, res) => {
 });
 
 const interviewSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  username: {
+    type: String,
+    required: true
+  },
   selectedRole: String,
   experience: Number,
   questions: Array,
   userAnswers: Array,
-  score: Number,
+  score: { type: Number, required: true },
   timestamp: { type: Date, default: Date.now }
 });
 
@@ -76,9 +85,11 @@ const Interview = mongoose.model('Interview', interviewSchema);
 // Route to save interview data
 app.post('/api/save-interview', async (req, res) => {
   try {
-    const { selectedRole, experience, questions, userAnswers, score } = req.body;
+    const { selectedRole, experience, questions, userAnswers, score,userId, username  } = req.body;
 
     const newInterview = new Interview({
+      userId,
+      username,
       selectedRole,
       experience,
       questions,

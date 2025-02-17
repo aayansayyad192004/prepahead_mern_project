@@ -4,10 +4,12 @@ const router = express.Router();
 
 // Post route for saving results
 router.post('/save-results', async (req, res) => {
-  const { role, experience, score, answers } = req.body;
+  const { role, experience, score, answers ,userId,username} = req.body;
 
   try {
     const newResult = new Result({
+      userId,
+      username,
       role,
       experience,
       score,
