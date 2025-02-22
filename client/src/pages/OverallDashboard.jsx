@@ -6,6 +6,7 @@ const OverallDashboard = ({ currentUser }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [userData, setUserData] = useState(null);
+  const [assessmentResults, setAssessmentResults] = useState([]);
 
   // Get user data from Redux store
   const { currentUser: reduxUser } = useSelector((state) => state.user);
@@ -32,9 +33,33 @@ const OverallDashboard = ({ currentUser }) => {
     }
   };
 
+  const fetchAssessmentResults = async () => {
+    try {
+      const response = await fetch("/api/get-results");
+      if (!response.ok) {
+        throw new Error("Failed to fetch result data");
+      }
+      const data = await response.json();
+      setAssessmentResults(data.sort((a, b) => (b.score || 0) - (a.score || 0)));
+    } catch (err) {
+      console.error("Error fetching result data:", err);
+      setError("Failed to load result data");
+    } finally {
+      setLoading(false);
+    }
+};
   useEffect(() => {
     fetchInterviewData();
   }, []);
+  
+  useEffect(() => {
+    fetchAssessmentResults();
+  }, [currentUser]);
+  
+  useEffect(() => {
+    console.log("Assessment Results:", assessmentResults);
+  }, [assessmentResults]);
+  
 
   return (
     <div className="container mx-auto p-8 bg-gradient-to-r from-indigo-50 to-indigo-100 min-h-screen">
@@ -128,7 +153,7 @@ const OverallDashboard = ({ currentUser }) => {
 
       {/* LeaderBoard Heading */}
       <div className="mb-6">
-        <h3 className="text-3xl font-bold text-indigo-900">LeaderBoard</h3>
+        <h3 className="text-3xl font-bold text-indigo-900">Interview LeaderBoard</h3>
       </div>
 
       {/* Leaderboard Table */}
@@ -161,6 +186,41 @@ const OverallDashboard = ({ currentUser }) => {
           </tbody>
         </table>
       </div>
+      <div className="mt-6 mb-6">
+        <h3 className="text-3xl font-bold text-indigo-900">Skill Assessment LeaderBoard</h3>
+      </div>
+
+      {/* Skill Assessment Leaderboard */}
+     {/* Leaderboard Table */}
+     <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-indigo-900">
+                        <tr>
+                            <th className="px-8 py-4 text-left text-sm font-bold text-yellow-100 uppercase tracking-wider">Rank</th>
+                            <th className="px-8 py-4 text-left text-sm font-bold text-yellow-100 uppercase tracking-wider">Name</th>
+                            <th className="px-8 py-4 text-left text-sm font-bold text-yellow-100 uppercase tracking-wider">Role</th>
+                            <th className="px-8 py-4 text-left text-sm font-bold text-yellow-100 uppercase tracking-wider">Experience</th>
+                            <th className="px-8 py-4 text-left text-sm font-bold text-yellow-100 uppercase tracking-wider">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {assessmentResults.map((result, index) => (
+                            <tr
+                                key={result._id}
+                                className={`${
+                                    result.userId === currentUser?._id ? "bg-yellow-50 font-semibold" : "hover:bg-gray-50"
+                                } transition duration-200`}
+                            >
+                                <td className="px-8 py-4 whitespace-nowrap text-lg text-gray-700">{index + 1}</td>
+                                <td className="px-8 py-4 whitespace-nowrap text-lg text-gray-700">{result.username || "Unknown"}</td>
+                                <td className="px-8 py-4 whitespace-nowrap text-lg text-gray-700">{result.role}</td>
+                                <td className="px-8 py-4 whitespace-nowrap text-lg text-gray-700">{result.experience} years</td>
+                                <td className="px-8 py-4 whitespace-nowrap text-lg text-gray-700">{result.score || 0}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
 
       {/* Error Handling */}
       {error && (
