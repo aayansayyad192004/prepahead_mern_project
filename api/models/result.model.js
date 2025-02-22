@@ -1,6 +1,15 @@
 import mongoose from 'mongoose';
 
 const resultSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  username: {
+    type: String,
+    required: true
+  },
   role: String,
   experience: Number,
   score: Number,

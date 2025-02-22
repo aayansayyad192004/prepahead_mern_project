@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Controlled as CodeMirror } from 'react-codemirror2';
+import { useSelector } from 'react-redux';
+
+
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/mode/javascript/javascript'; // or your preferred language
 import axios from "axios";
@@ -118,6 +121,7 @@ const SkillAssessment = () => {
   const startAssessment = () => {
     setIsAssessmentStarted(true);
   };
+  const currentUser = useSelector((state) => state.user.currentUser);
 
   const handleAnswerChange = (index, answer) => {
     const updatedAnswers = [...userAnswers];
@@ -151,10 +155,20 @@ const SkillAssessment = () => {
     });
 
     setScore(totalScore);
+    console.log("Current User:", currentUser);  // Debugging
+  console.log("Data Sent:", {
+    userId: currentUser?._id,
+    username: currentUser?.username,
+    role: selectedRole,
+    experience,
+    score: totalScore,
+    answers: userAnswers,
+  });
     try {
 
       await axios.post("/api/save-results", {
-
+        userId: currentUser._id, // Add user ID
+      username: currentUser.username, // Add username
         role: selectedRole,
 
         experience,
