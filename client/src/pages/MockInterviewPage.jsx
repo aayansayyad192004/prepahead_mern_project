@@ -334,8 +334,39 @@ const MockInterviewPage = () => {
     
     
     const getFeedback = (index) => {
-      return userAnswers[index]?.feedback || "Consider revisiting the topic for better clarity.";
+      const answer = userAnswers[index];
+      const transcript = transcriptions[index] || "";
+      const correctAnswer = questions[index]?.Answer || "";
+    
+      const similarityScore = calculateSimilarity(transcript, correctAnswer);
+    
+      // Define multiple feedbacks based on performance
+      const feedbacks = [
+        "Great job! You showed a clear understanding of the topic.",
+        "Your answer was on the right track, but you missed some important details.",
+        "You might want to revisit certain concepts for better clarity.",
+        "Consider exploring more real-world examples to support your answer.",
+        "Good attempt! But your response lacks depth in some areas.",
+        "You did well, but try to explain the reasoning behind your answer in more detail next time.",
+        "Nice answer! Try to include more technical terms to demonstrate your expertise."
+      ];
+    
+      // Generate more feedback dynamically based on similarity score
+      if (similarityScore > 0.8) {
+        return getRandomFeedback(feedbacks);
+      } else if (similarityScore > 0.6) {
+        return getRandomFeedback(feedbacks.slice(0, 4));  // Fewer options for mid-level answers
+      } else {
+        return getRandomFeedback(feedbacks.slice(2, 5));  // Fewer options for lower-level answers
+      }
     };
+    
+    // Helper function to return a random feedback from the list
+    const getRandomFeedback = (feedbacks) => {
+      const randomIndex = Math.floor(Math.random() * feedbacks.length);
+      return feedbacks[randomIndex];
+    };
+    
     
    
   return (

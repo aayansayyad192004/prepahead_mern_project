@@ -150,7 +150,7 @@ const OverallDashboard = ({ currentUser }) => {
         </div>
       )}
 
-
+      
       {/* LeaderBoard Heading */}
       <div className="mb-6">
         <h3 className="text-3xl font-bold text-indigo-900">Interview LeaderBoard</h3>
